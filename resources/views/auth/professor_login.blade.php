@@ -4,35 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @vite('resources/css/app.css')
-    <title>Login</title>
+    <title>Observer Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
 </head>
-<body>
-    <div class="container mx-auto p-4">
-    <div class="flex justify-end mb-4">
-            <a href="{{ route('professors.create') }}" class="text-blue-500 hover:underline">登録がお済みでない方はこちら</a>
+<body class="bg-gradient-to-br from-gray-100 to-purple-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-10 rounded-lg shadow-lg w-full max-w-md">
+            <h1 class="text-3xl font-light text-gray-700 mb-8 text-center">Observer Login</h1>
+            @if($errors->has('error'))
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+                    <p>{{ $errors->first('error') }}</p>
+                </div>
+            @endif
+            <form action="{{ route('professor.login') }}" method="POST">
+                @csrf
+                <div class="mb-6">
+                    <label class="block text-gray-600 text-sm font-medium mb-2" for="email">メールアドレス</label>
+                    <input name="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300" id="email" type="email" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-600 text-sm font-medium mb-2" for="password">パスワード</label>
+                    <input name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300" id="password" type="password" required>
+                </div>
+                <div class="flex items-center justify-between mb-6">
+                    <button class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-6 rounded-full transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-md" type="submit">
+                        ログイン
+                    </button>
+                    <a href="{{ route('professors.create') }}" class="text-sm text-purple-600 hover:text-purple-800 transition duration-300">アカウント登録</a>
+                </div>
+            </form>
         </div>
-        <h1 class="text-2xl font-bold mb-4">オブザーバーログイン</h1>
-        @if($errors->has('error'))
-            <div class="bg-red-500 text-white p-3 rounded mb-4">
-                {{ $errors->first('error') }}
-            </div>
-        @endif
-        <form action="{{ route('professor.login') }}" method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            @csrf
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">メールアドレス</label>
-                <input name="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">パスワード</label>
-                <input name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" required>
-            </div>
-            <div class="flex items-center justify-between">
-                <button class="bg-[#4682b4] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                    ログイン
-                </button>
-            </div>
-        </form>
     </div>
 </body>
 </html>
