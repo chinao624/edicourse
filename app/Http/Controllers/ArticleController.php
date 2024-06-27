@@ -196,10 +196,11 @@ class ArticleController extends Controller
         'opinion' => 'オピニオン',
         'others' => 'その他'
     ];
+
     public function dashboard()
     {
     $genres = array_values($this->genreMapping);
-    $articles = Article::with('user')->get();
+    $articles = Article::where('status', 'published')->with('user')->get();
     $user = Auth::user() ?? Auth::guard('professor')->user();
     return view('dashboard', compact('genres', 'articles','user'));
     }
@@ -209,7 +210,7 @@ class ArticleController extends Controller
     $decodedGenre = urldecode($genre);
     $genres = array_values($this->genreMapping);
     $englishGenre = array_search($decodedGenre, $this->genreMapping);
-    $articles = Article::where('genre', $englishGenre)->with('user')->get();
+    $articles = Article::where('genre', $englishGenre)->where('status', 'published')->with('user')->get();
     $user = Auth::user() ?? Auth::guard('professor')->user();
     return view('dashboard', compact('genres', 'articles', 'decodedGenre','user'));
     }

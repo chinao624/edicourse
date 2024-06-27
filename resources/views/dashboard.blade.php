@@ -55,11 +55,11 @@
 
         <main>
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">{{ isset($decodedGenre) ? $decodedGenre . 'の記事' : 'すべての記事' }}</h2>
-            @if ($articles->isEmpty())
+            @if ($articles->where('status', 'published')->isEmpty())
                 <p class="text-gray-600">まだ記事がありません。</p>
             @else
                 <div class="space-y-6">
-                    @foreach ($articles as $article)
+                    @foreach ($articles->where('status', 'published') as $article)
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
                             <div class="flex items-center p-4">
                                 @if ($article->mainimg)
