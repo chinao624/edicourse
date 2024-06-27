@@ -66,16 +66,38 @@
                                     <img src="{{ asset('storage/' . $article->mainimg) }}" alt="メイン画像" class="w-24 h-24 object-cover rounded-md mr-4">
                                 @endif
                                 <div>
+                                <p class="text-sm text-gray-500 mb-2">{{ $article->updated_at->format('Y年m月d日') }}</p>
                                     <a href="{{ route('articles.show', $article->id) }}" class="text-lg font-semibold text-[#4682b4] hover:text-[#4169e1] transition duration-300">{{ $article->title }}</a>
                                     <p class="text-sm text-gray-600 mt-2">
                                         {{ $article->user->nickname ?? 'Unknown' }} - 
                                         {{ $article->user->pref ?? '都道府県情報なし' }}在住
+                                        @if($article->user->school)
+                    - 
+                    @switch($article->user->school)
+                        @case('Middle')
+                            中学生
+                            @break
+                        @case('High')
+                            高校生・高専
+                            @break
+                        @case('college')
+                            大学・大学院生
+                            @break
+                        @default
+                            {{ $article->user->school }}
+                    @endswitch
+                @endif
                                     </p>
                                 </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
+
+                <!-- ページネーション -->
+                <div class="mt-6">
+        {{ $articles->links() }}
+    </div>
             @endif
         </main>
     </div>

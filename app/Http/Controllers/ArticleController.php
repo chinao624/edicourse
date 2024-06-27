@@ -80,7 +80,7 @@ class ArticleController extends Controller
      }
     public function show(string $id)
     {
-        $article = Article::findOrFail($id);
+        $article = Article::with(['user'])->findOrFail($id);
     $japaneseGenre = $this->getJapaneseGenre($article->genre);
 
     //日付の表示追加
@@ -89,7 +89,7 @@ class ArticleController extends Controller
     // $genreMappingをビューに渡す
     $genreMapping = $this->genreMapping;
 
-    return view('articles.show', compact('article', 'japaneseGenre','formattedDate'));
+    return view('articles.show', compact('article', 'japaneseGenre','formattedDate','genreMapping'));
     }
 
     /**
@@ -200,7 +200,8 @@ class ArticleController extends Controller
     public function dashboard()
     {
     $genres = array_values($this->genreMapping);
-    $articles = Article::where('status', 'published')->with('user')->get();
+    $articles = Article::where('status', 'published')->with('user:id,nickname,pref,school')->orderBy('updated_at', 'desc')
+    ->paginate(6);
     $user = Auth::user() ?? Auth::guard('professor')->user();
     return view('dashboard', compact('genres', 'articles','user'));
     }
@@ -210,7 +211,8 @@ class ArticleController extends Controller
     $decodedGenre = urldecode($genre);
     $genres = array_values($this->genreMapping);
     $englishGenre = array_search($decodedGenre, $this->genreMapping);
-    $articles = Article::where('genre', $englishGenre)->where('status', 'published')->with('user')->get();
+    $articles = Article::where('genre', $englishGenre)->where('status', 'published')->with('user:id,nickname,pref,school')->orderBy('updated_at', 'desc')
+    ->paginate(6);
     $user = Auth::user() ?? Auth::guard('professor')->user();
     return view('dashboard', compact('genres', 'articles', 'decodedGenre','user'));
     }

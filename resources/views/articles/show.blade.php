@@ -79,7 +79,22 @@
                     <div>
                         <h3 class="text-sm font-semibold text-gray-600">この記事を書いたのは…</h3>
                         <h3 class="text-lg font-semibold">{{ $article->user->nickname }}</h3>
-                        <p class="text-sm text-gray-600">{{ $article->user->profile->school }}</p>
+                        <p class="text-sm text-gray-600">
+            @switch($article->user->school)
+                @case('Middle')
+                    中学生
+                    @break
+                @case('High')
+                    高校生・高専
+                    @break
+                @case('college')
+                    大学・大学院生
+                    @break
+                @default
+                    {{ $article->user->school }}
+            @endswitch
+        </p>
+        <p class="text-sm text-gray-600 mt-2">{{ $article->user->profile->introduction }}</p>
                     </div>
                 </div>
                 <div class="text-right">
