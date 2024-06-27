@@ -86,6 +86,9 @@ class ArticleController extends Controller
     //日付の表示追加
     $formattedDate = $article->updated_at->format('Y年m月d日');
 
+    // $genreMappingをビューに渡す
+    $genreMapping = $this->genreMapping;
+
     return view('articles.show', compact('article', 'japaneseGenre','formattedDate'));
     }
 
