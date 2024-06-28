@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite('resources/css/app.css')
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="{{ asset('js/jquery-2.1.3.min.js') }}"></script>
     <title>{{ $article->title }}</title>
     <style>
@@ -228,7 +230,7 @@
             </a>
         </div>
     @else
-        <p class="mt-12 text-gray-600 text-center text-lg">コメントを投稿するには、professorとしてログインしてください。</p>
+        <p class="mt-12 text-gray-600 text-center text-lg">コメントを投稿するには、オブザーバーとしてログインしてください。</p>
     @endauth
 </div>
 
