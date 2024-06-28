@@ -79,3 +79,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset_password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset_password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
+
+// professorのコメントルート
+Route::get('/articles/{article}/comment/create', [ArticleController::class, 'createComment'])->name('article.comment.create');
+Route::post('/articles/{article}/comment', [ArticleController::class, 'storeComment'])->name('article.comment.store');

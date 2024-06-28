@@ -80,7 +80,7 @@ class ArticleController extends Controller
      }
     public function show(string $id)
     {
-        $article = Article::with(['user'])->findOrFail($id);
+        $article = Article::with(['user','comments.professor'])->findOrFail($id);
     $japaneseGenre = $this->getJapaneseGenre($article->genre);
 
     //日付の表示追加
@@ -273,6 +273,26 @@ class ArticleController extends Controller
              return redirect()->route('articles.show', $id)->with('error', '記事を公開する権限がありません。');
          }
      }
+
+    //  professorのコメント
+    public function createComment(Article $article)
+{
+    return view('professors.comment_create', compact('article'));
+}
+
+public function storeComment(Request $request, Article $article)
+{
+    $request->validate([
+        'comment' => 'required|string'
+    ]);
+
+    $article->comments()->create([
+        'professor_id' => auth('professor')->id(),
+        'comment' => $request->comment
+    ]);
+
+    return redirect()->route('articles.show', $article)->with('success', 'コメントが投稿されました。');
+}
 
 }
 

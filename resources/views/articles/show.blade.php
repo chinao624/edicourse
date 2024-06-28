@@ -186,8 +186,54 @@
                     <button id="saveButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white px-6 py-2 rounded-full" onclick="saveChanges()" data-update-url="{{ route('articles.update', $article->id) }}" style="display: none;">保存する</button>
                 </div>
             @endif
-        </div>
+        </div>      
     </div>
+
+    <!-- コメント欄 -->
+    <div class="container mx-auto px-4 mt-16 mb-16">
+    <h3 class="text-3xl font-bold pt-8 mb-8 text-center text-gray-800">コメント</h3>
+
+    @if($article->comments && $article->comments->count() > 0)
+        <div class="space-y-8">
+            @foreach($article->comments as $comment)
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden p-6">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            @if($comment->professor && $comment->professor->icon)
+                                <img src="{{ asset('storage/' . $comment->professor->icon) }}" alt="{{ $comment->professor->name }}" class="h-16 w-16 rounded-full object-cover">
+                            @else
+                                <img src="{{ asset('default-icon.png') }}" alt="Default Icon" class="h-16 w-16 rounded-full object-cover">
+                            @endif
+                        </div>
+                        <div class="ml-6 flex-grow">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xl font-semibold text-gray-800">{{ $comment->professor ? $comment->professor->name : 'Unknown Professor' }}</h4>
+                                <span class="text-sm text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{{ $comment->professor ? $comment->professor->business . ' | ' . $comment->professor->title : '' }}</p>
+                            <p class="mt-4 text-gray-800 leading-relaxed">{{ $comment->comment }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <p class="text-gray-600 text-center text-lg">この記事にはまだコメントがありません。</p>
+    @endif
+
+    @auth('professor')
+        <div class="mt-12 pb-8 text-center">
+            <a href="{{ route('article.comment.create', $article) }}" class="bg-[#d8bfd8] hover:bg-[#e6e6fa] text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline inline-block transition transform hover:-translate-y-1 hover:scale-110">
+                コメントを送る
+            </a>
+        </div>
+    @else
+        <p class="mt-12 text-gray-600 text-center text-lg">コメントを投稿するには、professorとしてログインしてください。</p>
+    @endauth
+</div>
+
+
+    
 
         <!-- JQueryでその場で編集できるように -->
     <script>
