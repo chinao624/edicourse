@@ -59,10 +59,14 @@ Route::middleware(['auth:web'])->group(function () {
     Route::put('/articles/{id}/publish', [ArticleController::class, 'publish'])->name('articles.publish');
 });
 
-// Professor専用のルート（必要に応じて）
+// Professor専用のルート
 Route::middleware(['auth:professor'])->group(function () {
     // マイページルート
     Route::get('/professor/mypage', [ProfessorController::class, 'showMypage'])->name('professor.mypage');
+    Route::get('/professor/mypage/edit', [ProfessorController::class, 'edit'])->name('professor.mypage.edit');
+    Route::post('/professor/delete', [ProfessorController::class, 'delete'])->name('professor.delete');
+    Route::get('/professor/mypage/edit', [ProfessorController::class, 'edit'])->name('professor.mypage.edit');
+    Route::post('/professor/mypage/update', [ProfessorController::class, 'update'])->name('professor.mypage.update');
 });
 
 // 記事表示ルート（認証不要）

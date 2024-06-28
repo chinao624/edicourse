@@ -50,4 +50,9 @@ class Professor extends Authenticatable
         ];
     }
 
+    public function articleComments()
+    {
+        return $this->hasMany(ArticleComment::class);
+    }
+
    }
