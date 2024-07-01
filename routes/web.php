@@ -7,6 +7,8 @@ use App\Http\Controllers\ProfessorController;
 use App\Http\Controllers\Auth\ProfessorLoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\ReviewerLoginController;
+use App\Http\Controllers\ReviewerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,8 +33,17 @@ Route::post('professor/logout', [ProfessorLoginController::class, 'logout'])->na
 Route::get('professors/create', [ProfessorController::class, 'create'])->name('professors.create');
 Route::post('professors', [ProfessorController::class, 'store'])->name('professors.store');
 
-// 共通のダッシュボードルート（ユーザーまたはProfessor）
-Route::middleware(['auth:web,professor'])->group(function () {
+// Reviewer認証ルート
+Route::get('reviewer/login', [ReviewerLoginController::class, 'showLoginForm'])->name('reviewer.login');
+Route::post('reviewer/login', [ReviewerLoginController::class, 'login']);
+Route::post('reviewer/logout', [ReviewerLoginController::class, 'logout'])->name('reviewer.logout');
+
+// Reviewer登録ルート
+Route::get('reviewer/create', [ReviewerController::class, 'create'])->name('reviewer.create');
+Route::post('reviewer', [ReviewerController::class, 'store'])->name('reviewer.store');
+
+// 共通のダッシュボードルート（ユーザーまたはProfessorまたはreviewer）
+Route::middleware(['auth:web,professor,reviewer'])->group(function () {
     Route::get('/dashboard', [ArticleController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/genre/{genre}', [ArticleController::class, 'showByGenre'])->name('articles.genre');
 });

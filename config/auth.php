@@ -44,6 +44,10 @@ return [
         'driver' => 'session',
         'provider' => 'professors',
     ],
+        'reviewer' => [
+        'driver' => 'session',
+        'provider' => 'reviewers',
+    ],
     ],
 
     /*
@@ -71,6 +75,11 @@ return [
         'professors' => [
         'driver' => 'eloquent',
         'model' => env('PROFESSOR_AUTH_MODEL',App\Models\Professor::class),
+    ],
+
+        'reviewers' => [
+        'driver' => 'eloquent',
+        'model' => env('REVIEWER_AUTH_MODEL', App\Models\Reviewer::class),
     ],
 
         // 'users' => [
@@ -111,6 +120,12 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'reviewers' => [
+        'provider' => 'reviewers',
+        'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+        'expire' => 60,
+        'throttle' => 60,
+    ],
     ],
 
     /*

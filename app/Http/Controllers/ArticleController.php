@@ -205,7 +205,7 @@ class ArticleController extends Controller
     $genres = array_values($this->genreMapping);
     $articles = Article::where('status', 'published')->with('user:id,nickname,pref,school')->orderBy('updated_at', 'desc')
     ->paginate(6);
-    $user = Auth::user() ?? Auth::guard('professor')->user();
+    $user = Auth::user() ?? Auth::guard('professor')->user() ?? Auth::guard('reviewer')->user();
     return view('dashboard', compact('genres', 'articles','user'));
     }
 

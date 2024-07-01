@@ -46,6 +46,8 @@
             <p class="text-gray-600 mb-6">ようこそ、{{ Auth::user()->nickname }}さん!</p>
         @elseif(Auth::guard('professor')->check())
             <p class="text-gray-600 mb-6">ようこそ、{{ Auth::guard('professor')->user()->name }}さん!</p>
+            @elseif(Auth::guard('reviewer')->check())
+            <p class="text-gray-600 mb-6">ようこそ、{{ Auth::guard('reviewer')->user()->name }}さん!</p>
         @endif
 
         <nav class="flex flex-wrap justify-center bg-white shadow-md rounded-full p-2 mb-8">
