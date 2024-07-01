@@ -67,6 +67,15 @@ Route::middleware(['auth:professor'])->group(function () {
     Route::post('/professor/delete', [ProfessorController::class, 'delete'])->name('professor.delete');
     Route::get('/professor/mypage/edit', [ProfessorController::class, 'edit'])->name('professor.mypage.edit');
     Route::post('/professor/mypage/update', [ProfessorController::class, 'update'])->name('professor.mypage.update');
+
+    // professorのコメントルート
+Route::get('/articles/{article}/comment/create', [ArticleController::class, 'createComment'])->name('article.comment.create');
+Route::post('/articles/{article}/comment', [ArticleController::class, 'storeComment'])->name('article.comment.store');
+//コメント編集・削除ルート
+Route::get('/comments/{comment}/edit', [ArticleController::class, 'editComment'])->name('article.comment.edit');
+Route::put('/comments/{comment}', [ArticleController::class, 'updateComment'])->name('article.comment.update');
+Route::delete('/comments/{comment}', [ArticleController::class, 'destroyComment'])->name('article.comment.destroy');
+
 });
 
 // 記事表示ルート（認証不要）
@@ -84,6 +93,3 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset_password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-// professorのコメントルート
-Route::get('/articles/{article}/comment/create', [ArticleController::class, 'createComment'])->name('article.comment.create');
-Route::post('/articles/{article}/comment', [ArticleController::class, 'storeComment'])->name('article.comment.store');

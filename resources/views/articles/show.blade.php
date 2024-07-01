@@ -214,6 +214,16 @@
                             </div>
                             <p class="text-sm text-gray-600 mt-1">{{ $comment->professor ? $comment->professor->business . ' | ' . $comment->professor->title : '' }}</p>
                             <p class="mt-4 text-gray-800 leading-relaxed">{{ $comment->comment }}</p>
+                            @if(Auth::guard('professor')->check() && Auth::guard('professor')->user()->id === $comment->professor_id)
+                    <div class="ml-auto">
+                        <a href="{{ route('article.comment.edit', $comment) }}" class="text-blue-500 hover:text-blue-700 mr-2">編集</a>
+                        <form action="{{ route('article.comment.destroy', $comment) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-500 hover:text-red-700" onclick="return confirm('本当に削除しますか？');">削除</button>
+                        </form>
+                    </div>
+                @endif
                         </div>
                     </div>
                 </div>

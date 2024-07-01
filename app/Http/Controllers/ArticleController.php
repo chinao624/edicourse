@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\ArticleComment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+
 class ArticleController extends Controller
 {
+    
     /**
      * Display a listing of the resource.
      */
@@ -294,5 +297,40 @@ public function storeComment(Request $request, Article $article)
     return redirect()->route('articles.show', $article)->with('success', 'コメントが投稿されました。');
 }
 
+// professorのコメント削除・更新機能
+public function editComment(ArticleComment $comment)
+{
+    if (Auth::guard('professor')->check() && Auth::guard('professor')->user()->id === $comment->professor_id) {
+        $article = $comment->article;
+        return view('professors.comment_edit', compact('comment', 'article'));
+    } else {
+        return redirect()->back()->with('error', 'コメントの編集権限がありません。');
+    }
+}
+
+public function updateComment(Request $request, ArticleComment $comment)
+{
+    if (Auth::guard('professor')->check() && Auth::guard('professor')->user()->id === $comment->professor_id) {
+        $request->validate([
+            'comment' => 'required|string'
+        ]);
+
+        $comment->update(['comment' => $request->comment]);
+        return redirect()->route('articles.show', $comment->article)->with('success', 'コメントが更新されました。');
+    } else {
+        return redirect()->back()->with('error', 'コメントの更新権限がありません。');
+    }
+}
+
+public function destroyComment(ArticleComment $comment)
+{
+    if (Auth::guard('professor')->check() && Auth::guard('professor')->user()->id === $comment->professor_id) {
+        $article = $comment->article;
+        $comment->delete();
+        return redirect()->route('articles.show', $article)->with('success', 'コメントが削除されました。');
+    } else {
+        return redirect()->back()->with('error', 'コメントの削除権限がありません。');
+    }
+}
 }
 

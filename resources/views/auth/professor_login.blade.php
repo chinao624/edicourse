@@ -14,6 +14,9 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-100 to-purple-100">
+<div class="absolute right-10 top-10 space-x-4 z-10">
+    <a href="{{ url('/') }}" class="px-3 py-1.5 bg-[#ffa07a] text-white text-sm font-semibold rounded-full hover:bg-[#fa8072] transition duration-300 shadow-md">Edicourse TOPへ</a>
+  </div>
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-white p-10 rounded-lg shadow-lg w-full max-w-md">
             <h1 class="text-3xl font-light text-gray-700 mb-8 text-center">Observer Login</h1>
