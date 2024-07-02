@@ -18,6 +18,7 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-8">
             <a href="{{ route('dashboard') }}" class="text-4xl font-josefin font-bold text-[#ff6347] hover:text-[#ff7f50] transition duration-300 mb-4 md:mb-0">Edicourse Media</a>
             <div class="flex flex-wrap justify-center md:justify-end space-x-4">
+            <a href="{{ url('/') }}" class="px-3 py-1.5 bg-[#ffa07a] text-white text-sm font-semibold rounded-full hover:bg-[#fa8072] transition duration-300 shadow-md">Edicourse TOPへ</a>
                 @if(Auth::guard('web')->check())
                     <a href="{{ route('mypage') }}" class="bg-[#6495ed] hover:bg-[#4169e1] text-white font-normal py-2 px-4 rounded-full transition duration-300">
                         マイページ
@@ -33,6 +34,16 @@
                         オブザーバーマイページ
                     </a>
                     <form action="{{ route('professor.logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button class="bg-[#ff6347] hover:bg-[#ff4500] text-white font-normal py-2 px-4 rounded-full transition duration-300" type="submit">
+                            ログアウト
+                        </button>
+                    </form>
+                    @elseif(Auth::guard('reviewer')->check())
+                    <a href="{{ route('reviewer.mypage') }}" class="bg-[#6495ed] hover:bg-[#4169e1] text-white font-normal py-2 px-4 rounded-full transition duration-300">
+                        レビュワーマイページ
+                    </a>
+                    <form action="{{ route('reviewer.logout') }}" method="POST" class="inline">
                         @csrf
                         <button class="bg-[#ff6347] hover:bg-[#ff4500] text-white font-normal py-2 px-4 rounded-full transition duration-300" type="submit">
                             ログアウト

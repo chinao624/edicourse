@@ -89,6 +89,14 @@ Route::delete('/comments/{comment}', [ArticleController::class, 'destroyComment'
 
 });
 
+// reviewer専用ルート
+Route::middleware(['auth:reviewer'])->group(function () {
+    Route::get('/reviewer/mypage', [ReviewerController::class, 'showMypage'])->name('reviewer.mypage');
+    Route::get('/reviewer/mypage/edit', [ReviewerController::class, 'edit'])->name('reviewer.mypage.edit');
+    Route::post('/reviewer/mypage/update', [ReviewerController::class, 'update'])->name('reviewer.mypage.update');
+    Route::post('/reviewer/delete', [ReviewerController::class, 'delete'])->name('reviewer.delete');
+});
+
 // 記事表示ルート（認証不要）
 Route::post('/articles/preview', [ArticleController::class, 'preview'])->name('articles.preview');
 Route::get('/articles/{id}', [ArticleController::class, 'show'])->name('articles.show');
