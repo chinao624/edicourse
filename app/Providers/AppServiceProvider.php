@@ -25,15 +25,6 @@ class AppServiceProvider extends ServiceProvider
             return new \Illuminate\Auth\EloquentUserProvider($app['hash'], \App\Models\User::class);
         });
 
-        // タイムアウト後のリダイレクト設定を追加
-        Auth::viaRequest('session', function (Request $request) {
-            if ($request->user()) {
-                return $request->user();
-            }
-
-            return redirect(config('auth.timeout_redirect', '/'));
-        });
-
-
+     
     }
 }
