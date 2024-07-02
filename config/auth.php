@@ -140,5 +140,6 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    'timeout_redirect' => env('AUTH_TIMEOUT_REDIRECT', '/'),
 
 ];
