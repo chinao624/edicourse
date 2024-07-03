@@ -154,14 +154,17 @@ class ArticleController extends Controller
             $article->img2 = $request->file('img2')->store('images', 'public');
         }
 
-        // ステータスの更新
-        if ($request->has('status')) {
-            $article->status = $request->input('status');
+         // 記事が公開中だった場合、ステータスを 'draft' に変更
+         if ($article->status == 'published') {
+            $article->status = 'draft';
         }
-
         $article->save();
 
-        return response()->json(['success' => true, 'message' => '記事を更新しました']);
+        return response()->json([
+            'success' => true, 
+            'message' => '記事を更新しました。記事は下書き状態になりました。',
+            'status' => $article->status
+        ]);
     } else {
         return response()->json(['success' => false, 'message' => '記事を更新できませんでした'], 403);
     }
@@ -271,11 +274,26 @@ class ArticleController extends Controller
              $article->status = 'published';
              $article->save();
  
-             return redirect()->route('articles.show', $id)->with('success', '記事を公開しました。');
-         } else {
-             return redirect()->route('articles.show', $id)->with('error', '記事を公開する権限がありません。');
-         }
+             return response()->json(['success' => true, 'message' => '記事を公開しました']);
+            } else {
+                return response()->json(['success' => false, 'message' => '記事を公開する権限がありません'], 403);
+            }
      }
+
+    //  再投稿のメソッド
+    public function repost($id)
+{
+    $article = Article::findOrFail($id);
+
+    if(Auth::check() && Auth::user()->id == $article->user_id){
+        $article->status = 'published';
+        $article->save();
+
+        return response()->json(['success' => true, 'message' => '記事を再投稿しました']);
+    } else {
+        return response()->json(['success' => false, 'message' => '記事を再投稿する権限がありません'], 403);
+    }
+}
 
     //  professorのコメント
     public function createComment(Article $article)
@@ -332,5 +350,42 @@ public function destroyComment(ArticleComment $comment)
         return redirect()->back()->with('error', 'コメントの削除権限がありません。');
     }
 }
+
+// レビュー依頼メソッド
+public function requestReview(Article $article)
+{
+    if (Auth::id() !== $article->user_id) {
+        return response()->json(['success' => false, 'message' => 'レビューを依頼する権限がありません。'], 403);
+    }
+
+    $article->update(['status' => 'review_requested']);
+    return response()->json(['success' => true, 'message' => 'レビューが依頼されました']);
+}
+
+// 記事ステータス表示メソッド
+public function getUserArticlesWithStatus()
+    {
+        $user = Auth::user();
+        $articles = Article::where('user_id', $user->id)
+                           ->select('id', 'title', 'status', 'created_at')
+                           ->orderBy('created_at', 'desc')
+                           ->get();
+    
+        return view('auth.mypage', compact('user', 'articles'));
+
+        return view('auth.mypage', compact('user', 'articles'));
+    }
+
+    // 下書きに戻すメソッドを追加
+    public function unpublish(Article $article)
+{
+    if (Auth::id() !== $article->user_id) {
+        return response()->json(['success' => false, 'message' => '記事を下書きに戻す権限がありません。'], 403);
+    }
+
+    $article->update(['status' => 'draft']);
+    return response()->json(['success' => true, 'message' => '記事を下書きに戻しました']);
+}
+
 }
 

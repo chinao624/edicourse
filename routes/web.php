@@ -68,6 +68,18 @@ Route::middleware(['auth:web'])->group(function () {
 
     // 記事公開ルート
     Route::put('/articles/{id}/publish', [ArticleController::class, 'publish'])->name('articles.publish');
+
+    // 記事status表示ルート
+    Route::get('/mypage', [ArticleController::class, 'getUserArticlesWithStatus'])->name('mypage');
+
+    // レビュー依頼ルート
+    Route::post('/articles/{article}/request-review', [ArticleController::class, 'requestReview'])->name('articles.request-review');
+
+    // 下書きに戻すルート
+    Route::put('/articles/{article}/unpublish', [ArticleController::class, 'unpublish'])->name('articles.unpublish');
+
+    // 再投稿ルート
+    Route::put('/articles/{id}/repost', [ArticleController::class, 'repost'])->name('articles.repost');
 });
 
 // Professor専用のルート

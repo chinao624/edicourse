@@ -34,6 +34,7 @@
             </div>
 
            
+            
             <div class="text-center pt-6 border-t">
                 <form action="{{ route('reviewer.delete') }}" method="POST" onsubmit="return confirmDeleteAccount()">
                     @csrf

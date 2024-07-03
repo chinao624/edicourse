@@ -155,39 +155,54 @@
             @endif
 
             @if(Auth::check() && Auth::user()->id == $article->user_id)
-                @if($article->status == 'draft')
-                    <form id="publishForm" action="{{ route('articles.publish',$article->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        <input type="hidden" name="title" id="hiddenTitleInput" value="{{ $article->title }}">
-                        <input type="hidden" name="lead" id="hiddenLeadInput" value="{{ $article->lead }}">
-                        <input type="hidden" name="closing" id="hiddenClosingInput" value="{{ $article->closing }}">
-                        <input type="hidden" name="cap1" id="hiddenCap1Input" value="{{ $article->cap1 }}">
-                        <input type="hidden" name="cap2" id="hiddenCap2Input" value="{{ $article->cap2 }}">
-                
-                        <div class="flex justify-end mt-4">
-                            <button type="submit" id="publishButton" class="btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
-                                これで投稿する
-                            </button>
-                        </div>
-                    </form>
-                @else
-                    <form id="updateForm" action="{{ route('articles.update', $article->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        <div class="flex justify-end mt-4">
-                            <button type="submit" id="repostButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
-                                再投稿する
-                            </button>
-                        </div>
-                    </form>
-                @endif
-        
-                <div class="flex justify-end mt-4 mb-10">
-                    <button id="editButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white px-6 py-2 rounded-full mr-2" onclick="enableEditing()">編集する</button>
-                    <button id="saveButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white px-6 py-2 rounded-full" onclick="saveChanges()" data-update-url="{{ route('articles.update', $article->id) }}" style="display: none;">保存する</button>
-                </div>
-            @endif
+    <div class="flex justify-end mt-4 space-x-4">
+        @if($article->status == 'draft')
+            <form id="publishForm" action="{{ route('articles.publish', $article->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <button type="submit" id="publishButton" class="btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    これで投稿する
+                </button>
+            </form>
+
+            <form id="reviewRequestForm" action="{{ route('articles.request-review', $article) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    レビュー依頼する
+                </button>
+            </form>
+        @elseif($article->status == 'review_requested')
+            <p class="text-blue-600 font-semibold mt-4 mr-4">レビュー依頼中です</p>
+            <form id="publishForm" action="{{ route('articles.publish', $article->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <button type="submit" id="publishButton" class="btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    レビューを待たずに公開する
+                </button>
+            </form>
+        @elseif($article->status == 'published')
+            <form id="unpublishForm" action="{{ route('articles.unpublish', $article->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <button type="submit" id="unpublishButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    下書きに戻す
+                </button>
+            </form>
+            <form id="repostForm" action="{{ route('articles.publish', $article->id) }}" method="POST" style="display: none;">
+                @csrf
+                @method('PUT')
+                <button type="submit" id="repostButton" class="btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    再投稿する
+                </button>
+        @endif
+    </div>
+
+    <div class="flex justify-end mt-4 mb-10">
+        <button id="editButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white px-6 py-2 rounded-full mr-2" onclick="enableEditing()">編集する</button>
+        <button id="saveButton" class="btn bg-[#4682b4] hover:bg-blue-600 text-white px-6 py-2 rounded-full" onclick="saveChanges()" data-update-url="{{ route('articles.update', $article->id) }}" style="display: none;">保存する</button>
+    </div>
+@endif
+
         </div>      
     </div>
 
@@ -247,7 +262,7 @@
 
     
 
-        <!-- JQueryでその場で編集できるように -->
+        <!-- JQueryでその場で編集、更新、レビュー依頼できるように -->
     <script>
        // グローバルスコープで関数を定義
 function enableEditing() {
@@ -319,7 +334,20 @@ function saveChanges() {
         contentType: false,
         success: function(data) {
             if (data.success) {
-                location.reload();
+// ステータス表示の更新
+var statusDisplay = $('<p>').addClass('text-blue-600 font-semibold mt-4').text('下書き');
+$('.flex.justify-end.mt-4.space-x-4').html(statusDisplay);
+
+// ボタンの更新
+var publishForm = createPublishForm();
+var reviewRequestForm = createReviewRequestForm();
+$('.flex.justify-end.mt-4.space-x-4').append(publishForm).append(reviewRequestForm);
+
+// 編集モードを終了
+disableEditing();
+                
+// 成功メッセージの表示
+                alert('記事を更新しました。記事は下書き状態になりました。');
             } else {
                 alert('更新に失敗しました: ' + (data.message || '不明なエラー'));
             }
@@ -329,16 +357,167 @@ function saveChanges() {
             alert('更新に失敗しました: ' + (xhr.responseJSON.message || error));
         }
     });
+    }
+
+
+    // 編集終了関連
+    function disableEditing() {
+    $('#saveButton').hide();
+    $('#editButton').show();
+    toggleElementDisplay('#titleInput', '#title');
+    toggleElementDisplay('#leadInput', '#lead');
+    toggleElementDisplay('#closingInput', '#closing');
+    toggleElementDisplay('#cap1Input', '#cap1');
+    toggleElementDisplay('#cap2Input', '#cap2');
+    $('#genreInput').hide();
+    $('#genreDisplay').show();
 }
+
+function createPublishForm() {
+    var publishForm = $('<form>').attr('id', 'publishForm').attr('action', "{{ route('articles.publish', $article->id) }}").attr('method', 'POST');
+    publishForm.append($('<input>').attr('type', 'hidden').attr('name', '_token').val($('meta[name="csrf-token"]').attr('content')));
+    publishForm.append($('<input>').attr('type', 'hidden').attr('name', '_method').val('PUT'));
+    publishForm.append($('<button>').attr('type', 'submit').attr('id', 'publishButton').addClass('btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline').text('これで投稿する'));
+    return publishForm;
+}
+
+function createReviewRequestForm() {
+    var reviewRequestForm = $('<form>').attr('id', 'reviewRequestForm').attr('action', "{{ route('articles.request-review', $article) }}").attr('method', 'POST');
+    reviewRequestForm.append($('<input>').attr('type', 'hidden').attr('name', '_token').val($('meta[name="csrf-token"]').attr('content')));
+    reviewRequestForm.append($('<button>').attr('type', 'submit').addClass('btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline').text('レビュー依頼する'));
+    return reviewRequestForm;
+}
+
+// レビュー依頼関数
+function requestReview() {
+    var reviewUrl = $('#reviewRequestForm').attr('action');
+    $.ajax({
+        url: reviewUrl,
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(data) {
+            if (data.success) {
+                alert(data.message); 
+                
+                var statusDisplay = $('<p>').addClass('text-blue-600 font-semibold mt-4').text('レビュー依頼中です');
+                $('.flex.justify-end.mt-4.space-x-4').html(statusDisplay);
+
+                // 「レビューを待たずに公開する」ボタンの追加
+                var publishForm = $('<form>').attr('id', 'publishForm').attr('action', "{{ route('articles.publish', $article->id) }}").attr('method', 'POST');
+                publishForm.append($('<input>').attr('type', 'hidden').attr('name', '_token').val($('meta[name="csrf-token"]').attr('content')));
+                publishForm.append($('<input>').attr('type', 'hidden').attr('name', '_method').val('PUT'));
+                publishForm.append($('<button>').attr('type', 'submit').attr('id', 'publishButton').addClass('btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline').text('レビューを待たずに公開する'));
+            } else {
+                alert('レビュー依頼に失敗しました: ' + (data.message || '不明なエラー'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', xhr.responseJSON);
+            alert('レビュー依頼に失敗しました: ' + (xhr.responseJSON.message || error));
+        }
+    });
+}
+
+// 記事を下書きに戻す関数
+function unpublishArticle() {
+    var unpublishUrl = $('#unpublishForm').attr('action');
+    $.ajax({
+        url: unpublishUrl,
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            _method: 'PUT'
+        },
+        success: function(data) {
+            if (data.success) {
+                alert(data.message);
+                var statusDisplay = $('<p>').addClass('text-blue-600 font-semibold mt-4').text('下書き');
+                $('.flex.justify-end.mt-4.space-x-4').html(statusDisplay);
+
+                // 「これで投稿する」ボタンと「レビュー依頼する」ボタンの追加
+                var publishForm = $('<form>').attr('id', 'publishForm').attr('action', "{{ route('articles.publish', $article->id) }}").attr('method', 'POST');
+                publishForm.append($('<input>').attr('type', 'hidden').attr('name', '_token').val($('meta[name="csrf-token"]').attr('content')));
+                publishForm.append($('<input>').attr('type', 'hidden').attr('name', '_method').val('PUT'));
+                publishForm.append($('<button>').attr('type', 'submit').attr('id', 'publishButton').addClass('btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline').text('これで投稿する'));
+
+                var reviewRequestForm = $('<form>').attr('id', 'reviewRequestForm').attr('action', "{{ route('articles.request-review', $article) }}").attr('method', 'POST');
+                reviewRequestForm.append($('<input>').attr('type', 'hidden').attr('name', '_token').val($('meta[name="csrf-token"]').attr('content')));
+                reviewRequestForm.append($('<button>').attr('type', 'submit').addClass('btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline').text('レビュー依頼する'));
+
+                $('.flex.justify-end.mt-4.space-x-4').append(publishForm).append(reviewRequestForm);
+            } else {
+                alert('記事を下書きに戻すのに失敗しました: ' + (data.message || '不明なエラー'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', xhr.responseJSON);
+            alert('記事を下書きに戻すのに失敗しました: ' + (xhr.responseJSON.message || error));
+        }
+    });
+}
+
+//記事公開関数
+
+function publishArticle() {
+    var publishUrl = $('#publishForm').attr('action');
+    $.ajax({
+        url: publishUrl,
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            _method: 'PUT'
+        },
+        success: function(data) {
+            if (data.success) {
+                alert(data.message);
+                
+                var statusDisplay = $('<p>').addClass('text-green-600 font-semibold mt-4').text('公開中');
+                $('.flex.justify-end.mt-4.space-x-4').html(statusDisplay);
+
+                // 「下書きに戻す」ボタンの追加
+                var unpublishForm = $('<form>').attr('id', 'unpublishForm').attr('action', "{{ route('articles.unpublish', $article->id) }}").attr('method', 'POST');
+                unpublishForm.append($('<input>').attr('type', 'hidden').attr('name', '_token').val($('meta[name="csrf-token"]').attr('content')));
+                unpublishForm.append($('<input>').attr('type', 'hidden').attr('name', '_method').val('PUT'));
+                unpublishForm.append($('<button>').attr('type', 'submit').attr('id', 'unpublishButton').addClass('btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline').text('下書きに戻す'));
+
+                $('.flex.justify-end.mt-4.space-x-4').append(unpublishForm);
+            } else {
+                alert('記事の公開に失敗しました: ' + (data.message || '不明なエラー'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', xhr.responseJSON);
+            alert('記事の公開に失敗しました: ' + (xhr.responseJSON.message || error));
+        }
+    });
+}
+
 
 // ドキュメント読み込み完了後に実行
 $(document).ready(function() {
     $('#editButton').on('click', enableEditing);
     $('#saveButton').on('click', saveChanges);
 
-    // 画像アップロードのイベントリスナー
+    // 画像アップロード
     $('#mainimgInput, #img1Input, #img2Input').on('change', function() {
         updateImage(this.id.replace('Input', ''), this);
+    });
+
+    $(document).on('submit', '#reviewRequestForm', function(e) {
+        e.preventDefault();
+        requestReview();
+    });
+
+    $(document).on('submit', '#unpublishForm', function(e) {
+        e.preventDefault();
+        unpublishArticle();
+    });
+
+    $(document).on('submit', '#publishForm', function(e) {
+        e.preventDefault();
+        publishArticle();  
     });
 });
 </script>

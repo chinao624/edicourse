@@ -48,14 +48,35 @@
         <ul class="space-y-4">
             @foreach($articles as $article)
                 <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
-                    <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
-                    @if(Auth::id() === $article->user_id)
-                        <form action="{{ route('articles.destroy', $article->id) }}" method="POST">
+                    <div>
+                        <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
+                        <span class="ml-2 text-sm text-gray-500">
+                            @switch($article->status)
+                                @case('draft')
+                                    (下書き)
+                                    @break
+                                @case('published')
+                                    (公開中)
+                                    @break
+                                @case('review_requested')
+                                    (レビュー依頼中)
+                                    @break
+                                @case('under_review')
+                                    (レビュー中)
+                                    @break
+                                @default
+                                    ({{ $article->status }})
+                            @endswitch
+                        </span>
+                    </div>
+                    <div class="flex items-center">
+                        <a href="{{ route('articles.edit', $article->id) }}" class="text-blue-500 hover:text-blue-700 transition duration-300 text-sm mr-4">編集</a>
+                        <form action="{{ route('articles.destroy', $article->id) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-400 hover:text-red-600 transition duration-300 text-sm" onclick="return confirmDelete()">削除</button>
                         </form>
-                    @endif
+                    </div>
                 </li>
             @endforeach
         </ul>
