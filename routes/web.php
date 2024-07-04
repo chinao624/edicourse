@@ -107,6 +107,8 @@ Route::middleware(['auth:reviewer'])->group(function () {
     Route::get('/reviewer/mypage/edit', [ReviewerController::class, 'edit'])->name('reviewer.mypage.edit');
     Route::post('/reviewer/mypage/update', [ReviewerController::class, 'update'])->name('reviewer.mypage.update');
     Route::post('/reviewer/delete', [ReviewerController::class, 'delete'])->name('reviewer.delete');
+    Route::post('/reviewer/accept-review/{article}', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept-review');
+    Route::get('/reviewer/review/{review}', [ReviewerController::class, 'showReviewPage'])->name('reviewer.review');
 });
 
 // 記事表示ルート（認証不要）

@@ -33,8 +33,80 @@
                 </a>
             </div>
 
-           
-            
+           <!-- レビューリクエスト記事 -->
+           <div class="mb-12">
+        <h2 class="text-2xl font-light text-gray-700 mb-6 pb-2 border-b">
+            <span class="block text-sm text-gray-500 mb-1">レビューリクエスト記事</span>
+            Review-Requested
+        </h2>
+        @if($reviewRequestedArticles->isEmpty())
+            <p class="text-gray-600 italic">現在、レビューリクエストされている記事はありません。</p>
+        @else
+            <ul class="space-y-4">
+                @foreach($reviewRequestedArticles as $article)
+                    <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+                        <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
+                        <form action="{{ route('reviewer.accept-review', $article->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                                レビューします！
+                            </button>
+                        </form>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
+
+    <!-- 自分がレビュー中の記事 -->
+<div class="mb-12">
+    <h2 class="text-2xl font-light text-gray-700 mb-6 pb-2 border-b">
+        <span class="block text-sm text-gray-500 mb-1">レビュー中の記事</span>
+        Ongoing Reviews
+    </h2>
+    @if($ongoingReviews->isEmpty())
+        <p class="text-gray-600 italic">現在レビュー中の記事はありません。</p>
+    @else
+        <ul class="space-y-4">
+            @foreach($ongoingReviews as $review)
+                <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+                    <div>
+                        <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
+                        <p class="text-sm text-red-500">あと{{ remainingTime($review->limit_time) }}以内にレビューを返却してください</p>
+                    </div>
+                    <a href="{{ route('reviewer.review', $review->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                        レビューを作成する
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+</div>
+
+
+
+    <!-- My Review（自分がレビューした記事） -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-light text-gray-700 mb-6 pb-2 border-b">
+            <span class="block text-sm text-gray-500 mb-1">自分がレビューした記事</span>
+            My Review
+        </h2>
+        @if($myReviews->isEmpty())
+            <p class="text-gray-600 italic">まだレビューした記事はありません。</p>
+        @else
+            <ul class="space-y-4">
+                @foreach($myReviews as $review)
+                    <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+                        <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
+                        <!-- ゆくゆくレビュー画像へのリンクをここに追加する！ -->
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
+
+
+
             <div class="text-center pt-6 border-t">
                 <form action="{{ route('reviewer.delete') }}" method="POST" onsubmit="return confirmDeleteAccount()">
                     @csrf

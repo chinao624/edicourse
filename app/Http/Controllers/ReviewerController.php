@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\ReviewArticle;
 use App\Models\Reviewer;
 
 use Illuminate\Http\Request;
@@ -38,14 +39,47 @@ class ReviewerController extends Controller
         return redirect()->route('reviewer.login')->with('success', 'アカウントが正常に作成されました。ログインしてください。');
 }
 
-//showMypageとdeleteメソッドは仮！
+//showMypageとdeleteメソッドは仮！→修正中
 public function showMypage()
 {
     $reviewer = Auth::guard('reviewer')->user();
-    // $commentedArticles = Article::whereHas('comments', function($query) use ($reviewer) {
-    //     $query->where('reviewer_id', $reviewer->id);
-    // })->get();
-    return view('reviewer.mypage',compact('reviewer'));
+    $reviewRequestedArticles = Article::where('status', 'review_requested')->get();
+    $myReviews = ReviewArticle::where('reviewer_id', $reviewer->id)
+                              ->where('status', 'completed')
+                              ->with('article')
+                              ->get();
+
+    // 「レビューします」といった本人には記事は表示させておく
+    $ongoingReviews = ReviewArticle::where('reviewer_id', $reviewer->id)
+                              ->where('status', 'pending')
+                              ->with('article')
+                              ->get();
+
+    return view('reviewer.mypage',compact('reviewer','reviewRequestedArticles','myReviews','ongoingReviews'));
+}
+
+public function acceptReview(Article $article)
+{
+    $reviewer = auth()->guard('reviewer')->user();
+    
+    $article->status = 'under_review';
+    $article->save();
+
+    ReviewArticle::create([
+        'reviewer_id' => $reviewer->id,
+        'article_id' => $article->id,
+        'status' => 'pending',
+        'limit_time' => now()->addHours(24),
+    ]);
+
+    return redirect()->route('reviewer.mypage')->with('success', 'レビューを受け付けました。');
+}
+
+// レビューページ用メソッド
+public function showReviewPage(ReviewArticle $review)
+{
+    // レビューページどう表示させよう。。
+    return view('reviewer.review', compact('review'));
 }
 
 public function delete(Request $request)
