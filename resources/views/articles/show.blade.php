@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="{{ asset('js/jquery-2.1.3.min.js') }}"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <title>{{ $article->title }}</title>
     <style>
         body {
@@ -58,9 +59,11 @@
     </a>
 </div>
 
+<div id="article-content-for-screenshot">
+
           <!-- mainimgのセット -->
             <div class="relative mb-8">
-                <img id="mainimg" src="{{ asset('storage/' . $article->mainimg) }}" alt="{{ $article->title }}" class="w-full object-cover rounded-lg shadow-lg" style="height: 400px;">
+                <img id="mainimg" src="{{ asset('storage/' . $article->mainimg) }}" crossorigin="anonymous" alt="{{ $article->title }}" class="w-full object-cover rounded-lg shadow-lg" style="height: 400px;">
                 
                 @if(Auth::check() && Auth::user()->id == $article->user_id)
                     <input type="file" id="mainimgInput" class="hidden" onchange="updateImage('mainimg', this)">
@@ -116,7 +119,7 @@
             <div class="flex flex-col md:flex-row mb-12">
                 <div class="w-full md:w-1/2 pr-0 md:pr-4 mb-4 md:mb-0">
                     <div class="flex items-center justify-center bg-gray-100 rounded-lg" style="height: 300px;">
-                        <img id="img1" src="{{ asset('storage/' . $article->img1) }}" alt="Image 1" class="max-w-full max-h-full object-contain rounded-lg shadow">
+                        <img id="img1" src="{{ asset('storage/' . $article->img1) }}" crossorigin="anonymous" alt="Image 1" class="max-w-full max-h-full object-contain rounded-lg shadow">
                         @if(Auth::check() && Auth::user()->id == $article->user_id)
                             <input type="file" id="img1Input" class="hidden" onchange="updateImage('img1', this)">
                         @endif
@@ -134,7 +137,7 @@
             <div class="flex flex-col md:flex-row mb-12">
                 <div class="w-full md:w-1/2 order-2 md:order-2 pl-0 md:pl-4 mb-4 md:mb-0">
                     <div class="flex items-center justify-center bg-gray-100 rounded-lg" style="height: 300px;">
-                        <img id="img2" src="{{ asset('storage/' . $article->img2) }}" alt="Image 2" class="max-w-full max-h-full object-contain rounded-lg shadow">
+                        <img id="img2" src="{{ asset('storage/' . $article->img2) }}" crossorigin="anonymous" alt="Image 2" class="max-w-full max-h-full object-contain rounded-lg shadow">
                         @if(Auth::check() && Auth::user()->id == $article->user_id)
                             <input type="file" id="img2Input" class="hidden" onchange="updateImage('img2', this)">
                         @endif
@@ -153,6 +156,7 @@
             @if(Auth::check() && Auth::user()->id == $article->user_id)
                 <textarea id="closingInput" class="textarea textarea-bordered w-full mb-8 text-xl" style="display: none;">{{ $article->closing }}</textarea>
             @endif
+        </div>
 
             @if(Auth::check() && Auth::user()->id == $article->user_id)
     <div class="flex justify-end mt-4 space-x-4">
@@ -264,6 +268,22 @@
 
         <!-- JQueryでその場で編集、更新、レビュー依頼できるように -->
     <script>
+        $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    // 画像の表示確認ー＞あとでコメントアウト！
+    $(document).ready(function() {
+        $('img').each(function() {
+            console.log('Image URL:', $(this).attr('src'));
+            $(this).on('error', function() {
+                console.error('Image failed to load:', $(this).attr('src'));
+            });
+        });
+    });
+
        // グローバルスコープで関数を定義
 function enableEditing() {
     $('#editButton').hide();
@@ -507,6 +527,7 @@ $(document).ready(function() {
 
     $(document).on('submit', '#reviewRequestForm', function(e) {
         e.preventDefault();
+        takeScreenshot();
         requestReview();
     });
 
@@ -520,6 +541,99 @@ $(document).ready(function() {
         publishArticle();  
     });
 });
+
+// レビュー依頼でスクリーンショット
+function takeScreenshot() {
+    console.log('Starting screenshot capture');
+    const targetElement = document.querySelector("#article-content-for-screenshot");
+    console.log('Target element:', targetElement);
+
+    // すべての画像の読み込み状態を確認
+    const images = targetElement.getElementsByTagName('img');
+    Array.from(images).forEach(img => {
+        console.log('Image src:', img.src, 'Complete:', img.complete);
+        // crossOrigin 属性を追加
+        img.crossOrigin = "anonymous";
+    });
+
+    // html2canvasのオプションを設定
+    const options = {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        scale: 1,
+        foreignObjectRendering: true,
+        logging: true,
+        imageTimeout: 0,
+        ignoreElements: (element) => {
+            const style = window.getComputedStyle(element);
+            return style.color.includes('oklch') || style.backgroundColor.includes('oklch');
+        },
+        onclone: (clonedDoc) => {
+            const elements = clonedDoc.querySelectorAll('*');
+            elements.forEach(el => {
+                const style = window.getComputedStyle(el);
+                if (style.color.includes('oklch')) {
+                    el.style.color = 'black';
+                }
+                if (style.backgroundColor.includes('oklch')) {
+                    el.style.backgroundColor = 'white';
+                }
+                // クローンされた画像にも crossOrigin 属性を追加
+                if (el.tagName === 'IMG') {
+                    el.crossOrigin = "anonymous";
+                }
+            });
+        }
+    };
+
+    // 画像の読み込みを待つ関数
+    function waitForImages(element) {
+        const images = element.getElementsByTagName('img');
+        return Promise.all(Array.from(images).filter(img => !img.complete).map(img => new Promise(resolve => { img.onload = img.onerror = resolve; })));
+    }
+
+    // 画像の読み込みを待ってからスクリーンショットを取る
+    waitForImages(targetElement).then(() => {
+        console.log('All images loaded');
+        html2canvas(targetElement, options).then(canvas => {
+            console.log('Canvas created successfully');
+            
+            canvas.toBlob(function(blob) {
+                console.log('Blob created:', blob);
+                console.log('Blob size:', blob.size);
+
+                const formData = new FormData();
+                formData.append('screenshot', blob, 'article_screenshot.png');
+                formData.append('article_id', '{{ $article->id }}');
+
+                $.ajax({
+                    url: '{{ route("articles.save-screenshot") }}',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        console.log('Success response:', response);
+                        alert('スクリーンショットが保存されました');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error response:', xhr.responseJSON);
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        alert('スクリーンショットの保存に失敗しました: ' + error);
+                    }
+                });
+            }, 'image/png');
+        }).catch(error => {
+            console.error('Error in html2canvas:', error);
+            alert('スクリーンショットの作成に失敗しました: ' + error.message);
+        });
+    });
+}
 </script>
           
 </body>

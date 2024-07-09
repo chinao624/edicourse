@@ -25,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
             return new \Illuminate\Auth\EloquentUserProvider($app['hash'], \App\Models\User::class);
         });
 
+        
+
      
     }
 }

@@ -10,10 +10,21 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ReviewerLoginController;
 use App\Http\Controllers\ReviewerController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = Storage::disk('public')->path($path);
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    return response()->file($fullPath);
+})->where('path', '.*');
 
 // ユーザー登録ルート
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -74,6 +85,9 @@ Route::middleware(['auth:web'])->group(function () {
 
     // レビュー依頼ルート
     Route::post('/articles/{article}/request-review', [ArticleController::class, 'requestReview'])->name('articles.request-review');
+
+    // レビュー用スクリーンショット
+    Route::post('/articles/save-screenshot', [ArticleController::class, 'saveScreenshot'])->name('articles.save-screenshot');
 
     // 下書きに戻すルート
     Route::put('/articles/{article}/unpublish', [ArticleController::class, 'unpublish'])->name('articles.unpublish');

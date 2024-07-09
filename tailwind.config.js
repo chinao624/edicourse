@@ -13,9 +13,12 @@ export default {
       }
     },
     daisyui: {
-      themes: ["cupcake","pastel","lemonade","nord"],
-       
-    },
+      themes:[
+        {
+        mytheme:customTheme,
+        },
+        ],
+      },
   },
   plugins: [require("daisyui")],
 }

@@ -7,6 +7,7 @@ use App\Models\ArticleComment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 
 class ArticleController extends Controller
@@ -360,6 +361,43 @@ public function requestReview(Article $article)
 
     $article->update(['status' => 'review_requested']);
     return response()->json(['success' => true, 'message' => 'レビューが依頼されました']);
+}
+
+// レビュー用スクリーンショット作成メソッド
+public function saveScreenshot(Request $request)
+{
+    Log::info('Screenshot save attempt started');
+    
+    $request->validate([
+        'screenshot' => 'required|image',
+        'article_id' => 'required|exists:articles,id'
+    ]);
+
+    Log::info('Validation passed');
+
+    $article = Article::findOrFail($request->article_id);
+
+    if (Auth::id() !== $article->user_id) {
+        Log::warning('Unauthorized attempt to save screenshot');
+        return response()->json(['success' => false, 'message' => 'スクリーンショットを保存する権限がありません。'], 403);
+    }
+
+    Log::info('Authorization passed');
+
+   try {
+        $path = $request->file('screenshot')->store('screenshots', 'public');
+        Log::info('Screenshot stored at: ' . $path);
+        
+        $article->screenshot_path = $path;
+        $article->save();
+
+        Log::info('Screenshot path saved to database');
+
+        return response()->json(['success' => true, 'message' => 'スクリーンショットが保存されました']);
+    } catch (\Exception $e) {
+        Log::error('Error saving screenshot: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'スクリーンショットの保存中にエラーが発生しました'], 500);
+    }
 }
 
 // 記事ステータス表示メソッド
