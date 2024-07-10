@@ -276,15 +276,15 @@
         }
     });
 
-    // 画像の表示確認ー＞あとでコメントアウト！
-    $(document).ready(function() {
-        $('img').each(function() {
-            console.log('Image URL:', $(this).attr('src'));
-            $(this).on('error', function() {
-                console.error('Image failed to load:', $(this).attr('src'));
-            });
-        });
-    });
+    // // 画像の表示確認ー＞あとでコメントアウト！
+    // $(document).ready(function() {
+    //     $('img').each(function() {
+    //         console.log('Image URL:', $(this).attr('src'));
+    //         $(this).on('error', function() {
+    //             console.error('Image failed to load:', $(this).attr('src'));
+    //         });
+    //     });
+    // });
 
        // グローバルスコープで関数を定義
 function enableEditing() {
@@ -553,13 +553,9 @@ async function takeScreenshot() {
     // スクリーンショット前に要素を可視化
     const originalStyle = targetElement.style.cssText;
     targetElement.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: ${targetElement.scrollWidth}px;
-        height: ${targetElement.scrollHeight}px;
+        position: relative;
+        width: 100%;
         visibility: visible;
-        pointer-events: none;
     `;
 
     try {
@@ -573,36 +569,17 @@ async function takeScreenshot() {
         );
         console.log('All images loaded');
 
+        // HTML要素から OKLCH 色を削除または置換
+        removeOKLCHColors(targetElement);
+
         const canvas = await html2canvas(targetElement, {
             useCORS: true,
             allowTaint: true,
             backgroundColor: null,
             scale: window.devicePixelRatio,
-            width: targetElement.scrollWidth,
-            height: targetElement.scrollHeight,
             scrollX: 0,
             scrollY: -window.scrollY,
-            windowWidth: document.documentElement.clientWidth,
-            windowHeight: document.documentElement.clientHeight,
-            logging: true,
-            ignoreElements: (element) => {
-                const style = window.getComputedStyle(element);
-                return style.color.includes('oklch') || style.backgroundColor.includes('oklch');
-            },
-            onclone: function(clonedDoc) {
-                const elements = clonedDoc.querySelectorAll('*');
-                elements.forEach(el => {
-                    const style = window.getComputedStyle(el);
-                    if (style.color.includes('oklch')) {
-                        el.style.color = 'black';  // oklch色を黒に置き換え
-                        console.log('Replaced oklch color:', el);
-                    }
-                    if (style.backgroundColor.includes('oklch')) {
-                        el.style.backgroundColor = 'white';  // oklch背景色を白に置き換え
-                        console.log('Replaced oklch background:', el);
-                    }
-                });
-            }
+            logging: true
         });
 
         console.log('Canvas created successfully');
@@ -639,6 +616,23 @@ async function takeScreenshot() {
         targetElement.style.cssText = originalStyle;
     }
 }
+
+// HTML要素から OKLCH 色を削除または置換する関数
+function removeOKLCHColors(element) {
+    const elements = element.querySelectorAll('*');
+    elements.forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (style.color.includes('oklch')) {
+            el.style.color = 'black';  // oklch色を黒に置き換え
+            console.log('Replaced oklch color:', el);
+        }
+        if (style.backgroundColor.includes('oklch')) {
+            el.style.backgroundColor = 'white';  // oklch背景色を白に置き換え
+            console.log('Replaced oklch background:', el);
+        }
+    });
+}
+
 </script>
           
 </body>
