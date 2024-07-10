@@ -605,8 +605,15 @@ async function takeScreenshot() {
             }
         });
 
-        console.log('Success response:', response);
-        alert('スクリーンショットが保存されました');
+        if (response.success) {
+            console.log('Success response:', response);
+            alert('スクリーンショットが保存されました');
+            // スクリーンショットのリンクをレビューページに表示
+            window.location.reload();
+        } else {
+            console.error('Error response:', response);
+            alert('スクリーンショットの保存に失敗しました: ' + response.message);
+        }
 
     } catch (error) {
         console.error('Error in takeScreenshot:', error);

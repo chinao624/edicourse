@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <title>レビュワーマイページ</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
@@ -49,7 +50,7 @@
                         <form action="{{ route('reviewer.accept-review', $article->id) }}" method="POST">
                             @csrf
                             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                                レビューします！
+                                私がレビューします！
                             </button>
                         </form>
                     </li>
@@ -72,11 +73,17 @@
                 <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
                     <div>
                         <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
+                        @if($review->article->screenshot_path)
+                            <a href="{{ asset('storage/' . $review->article->screenshot_path) }}" target="_blank" class="ml-4 text-blue-600 hover:text-blue-800 transition duration-300">スクリーンショットを見る</a>
+                        @endif
                         <p class="text-sm text-red-500">あと{{ remainingTime($review->limit_time) }}以内にレビューを返却してください</p>
                     </div>
-                    <a href="{{ route('reviewer.review', $review->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                        レビューを作成する
-                    </a>
+                    <form action="{{ route('reviewer.accept-review', $review->article->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                            レビューを作成する
+                        </button>
+                    </form>
                 </li>
             @endforeach
         </ul>
