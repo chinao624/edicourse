@@ -425,5 +425,13 @@ public function getUserArticlesWithStatus()
     return response()->json(['success' => true, 'message' => '記事を下書きに戻しました']);
 }
 
+// レビュー作成ビュー表示メソッド
+public function review($id)
+{
+    $article = Article::findOrFail($id);
+    return view('reviewer.review', compact('article'));
+}
+
+
 }
 

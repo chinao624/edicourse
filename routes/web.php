@@ -123,6 +123,7 @@ Route::middleware(['auth:reviewer'])->group(function () {
     Route::post('/reviewer/delete', [ReviewerController::class, 'delete'])->name('reviewer.delete');
     Route::post('/reviewer/accept-review/{article}', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept-review');
     Route::get('/reviewer/review/{review}', [ReviewerController::class, 'showReviewPage'])->name('reviewer.review');
+    Route::post('/reviewer/submit-review/{review}', [ReviewerController::class, 'submitReview'])->name('reviewer.submit-review');
 });
 
 // 記事表示ルート（認証不要）

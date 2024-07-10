@@ -72,14 +72,16 @@ public function acceptReview(Article $article)
         'limit_time' => now()->addHours(24),
     ]);
 
-    return redirect()->route('reviewer.mypage')->with('success', 'レビューを受け付けました。');
+    return redirect()->route('reviewer.review', ['review' => $article->id])->with('success', 'レビューを受け付けました。');
 }
 
 // レビューページ用メソッド
-public function showReviewPage(ReviewArticle $review)
+public function showReviewPage($id)
 {
-    // レビューページどう表示させよう。。
-    return view('reviewer.review', compact('review'));
+    $review = ReviewArticle::with('article')->findOrFail($id);
+    $article = $review->article;
+
+    return view('reviewer.review', compact('review','article'));
 }
 
 public function delete(Request $request)
