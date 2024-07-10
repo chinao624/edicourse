@@ -39,6 +39,7 @@
     </style>
 </head>
 <body class="bg-gray-100">
+
     <div class="container mx-auto p-4 mt-8 mb-8" style="max-width: 1000px;">
         <div class="article-header">
         <div class="flex justify-between items-center mb-6">
@@ -80,7 +81,7 @@
             <!-- オーサー&編集日セット -->
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center">
-                    <img src="{{ asset('storage/' . $article->user->profile->icon) }}" alt="{{ $article->user->nickname }}" class="w-16 h-16 rounded-full mr-4 border-2 border-gray-300">
+                <img src="{{ $article->user->profile->icon ? asset('storage/' . $article->user->profile->icon) : asset('default/user_icon.png') }}" alt="{{ $article->user->nickname }}" class="w-16 h-16 rounded-full mr-4 border-2 border-gray-300">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-600">この記事を書いたのは…</h3>
                         <h3 class="text-lg font-semibold">{{ $article->user->nickname }}</h3>

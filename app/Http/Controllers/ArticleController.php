@@ -393,7 +393,7 @@ public function saveScreenshot(Request $request)
 
         Log::info('Screenshot path saved to database');
 
-        return response()->json(['success' => true, 'message' => 'スクリーンショットが保存されました']);
+        return response()->json(['success' => true, 'message' => 'スクリーンショットが保存されました','path' => Storage::url($path)]);
     } catch (\Exception $e) {
         Log::error('Error saving screenshot: ' . $e->getMessage());
         return response()->json(['success' => false, 'message' => 'スクリーンショットの保存中にエラーが発生しました'], 500);
