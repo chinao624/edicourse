@@ -107,7 +107,7 @@
                     <p class="text-sm text-gray-600">{{ $formattedDate }}</p>
                 </div>
             </div>
-        </div>
+        
 
         <!-- リード -->
         <div class="article-content">
@@ -158,6 +158,7 @@
                 <textarea id="closingInput" class="textarea textarea-bordered w-full mb-8 text-xl" style="display: none;">{{ $article->closing }}</textarea>
             @endif
         </div>
+    </div>
 
             @if(Auth::check() && Auth::user()->id == $article->user_id)
     <div class="flex justify-end mt-4 space-x-4">
@@ -208,7 +209,7 @@
     </div>
 @endif
 
-        </div>      
+            
     </div>
 
     <!-- コメント欄 -->
@@ -544,96 +545,99 @@ $(document).ready(function() {
 });
 
 // レビュー依頼でスクリーンショット
-function takeScreenshot() {
+async function takeScreenshot() {
     console.log('Starting screenshot capture');
     const targetElement = document.querySelector("#article-content-for-screenshot");
     console.log('Target element:', targetElement);
 
-    // すべての画像の読み込み状態を確認
-    const images = targetElement.getElementsByTagName('img');
-    Array.from(images).forEach(img => {
-        console.log('Image src:', img.src, 'Complete:', img.complete);
-        // crossOrigin 属性を追加
-        img.crossOrigin = "anonymous";
-    });
+    // スクリーンショット前に要素を可視化
+    const originalStyle = targetElement.style.cssText;
+    targetElement.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: ${targetElement.scrollWidth}px;
+        height: ${targetElement.scrollHeight}px;
+        visibility: visible;
+        pointer-events: none;
+    `;
 
-    // html2canvasのオプションを設定
-    const options = {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        scale: 1,
-        foreignObjectRendering: true,
-        logging: true,
-        imageTimeout: 0,
-        ignoreElements: (element) => {
-            const style = window.getComputedStyle(element);
-            return style.color.includes('oklch') || style.backgroundColor.includes('oklch');
-        },
-        onclone: (clonedDoc) => {
-            const elements = clonedDoc.querySelectorAll('*');
-            elements.forEach(el => {
-                const style = window.getComputedStyle(el);
-                if (style.color.includes('oklch')) {
-                    el.style.color = 'black';
-                }
-                if (style.backgroundColor.includes('oklch')) {
-                    el.style.backgroundColor = 'white';
-                }
-                // クローンされた画像にも crossOrigin 属性を追加
-                if (el.tagName === 'IMG') {
-                    el.crossOrigin = "anonymous";
-                }
-            });
-        }
-    };
-
-    // 画像の読み込みを待つ関数
-    function waitForImages(element) {
-        const images = element.getElementsByTagName('img');
-        return Promise.all(Array.from(images).filter(img => !img.complete).map(img => new Promise(resolve => { img.onload = img.onerror = resolve; })));
-    }
-
-    // 画像の読み込みを待ってからスクリーンショットを取る
-    waitForImages(targetElement).then(() => {
+    try {
+        // すべての画像の読み込みを待つ
+        await Promise.all(Array.from(targetElement.getElementsByTagName('img'))
+            .filter(img => !img.complete)
+            .map(img => new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            }))
+        );
         console.log('All images loaded');
-        html2canvas(targetElement, options).then(canvas => {
-            console.log('Canvas created successfully');
-            
-            canvas.toBlob(function(blob) {
-                console.log('Blob created:', blob);
-                console.log('Blob size:', blob.size);
 
-                const formData = new FormData();
-                formData.append('screenshot', blob, 'article_screenshot.png');
-                formData.append('article_id', '{{ $article->id }}');
-
-                $.ajax({
-                    url: '{{ route("articles.save-screenshot") }}',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        console.log('Success response:', response);
-                        alert('スクリーンショットが保存されました');
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error response:', xhr.responseJSON);
-                        console.error('Status:', status);
-                        console.error('Error:', error);
-                        alert('スクリーンショットの保存に失敗しました: ' + error);
+        const canvas = await html2canvas(targetElement, {
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            scale: window.devicePixelRatio,
+            width: targetElement.scrollWidth,
+            height: targetElement.scrollHeight,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: document.documentElement.clientWidth,
+            windowHeight: document.documentElement.clientHeight,
+            logging: true,
+            ignoreElements: (element) => {
+                const style = window.getComputedStyle(element);
+                return style.color.includes('oklch') || style.backgroundColor.includes('oklch');
+            },
+            onclone: function(clonedDoc) {
+                const elements = clonedDoc.querySelectorAll('*');
+                elements.forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    if (style.color.includes('oklch')) {
+                        el.style.color = 'black';  // oklch色を黒に置き換え
+                        console.log('Replaced oklch color:', el);
+                    }
+                    if (style.backgroundColor.includes('oklch')) {
+                        el.style.backgroundColor = 'white';  // oklch背景色を白に置き換え
+                        console.log('Replaced oklch background:', el);
                     }
                 });
-            }, 'image/png');
-        }).catch(error => {
-            console.error('Error in html2canvas:', error);
-            alert('スクリーンショットの作成に失敗しました: ' + error.message);
+            }
         });
-    });
+
+        console.log('Canvas created successfully');
+
+        // Blobの生成
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        console.log('Blob created:', blob);
+        console.log('Blob size:', blob.size);
+
+        const formData = new FormData();
+        formData.append('screenshot', blob, 'article_screenshot.png');
+        formData.append('article_id', '{{ $article->id }}');
+
+        // AJAXリクエストの送信
+        const response = await $.ajax({
+            url: '{{ route("articles.save-screenshot") }}',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        console.log('Success response:', response);
+        alert('スクリーンショットが保存されました');
+
+    } catch (error) {
+        console.error('Error in takeScreenshot:', error);
+        alert('スクリーンショットの作成または保存に失敗しました: ' + error.message);
+    } finally {
+        // 元のスタイルを復元
+        targetElement.style.cssText = originalStyle;
+    }
 }
 </script>
           
