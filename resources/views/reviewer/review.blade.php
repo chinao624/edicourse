@@ -31,22 +31,22 @@
             <h1 class="text-3xl font-light text-gray-700 mb-6 pb-2 border-b">
                 {{ $article->title }}
             </h1>
-            
-            @if($article->screenshot_path)
-                <div class="mb-6">
-                    <a href="{{ asset('storage/' . $article->screenshot_path) }}" target="_blank" class="text-teal-600 hover:text-teal-800 transition duration-300">スクリーンショットを見る</a>
-                </div>
-            @endif
 
             <!-- Fabric.jsを使って画像編集するためのキャンバスをここに追加 -->
-            <canvas id="canvas"></canvas>
+            <canvas id="canvas" width="800" height="600"></canvas>
+
+            <!-- 描画モード選択ボタン -->
+            <div class="mt-4">
+                <button id="draw-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">描画モード</button>
+                <button id="text-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">テキストモード</button>
+            </div>
 
             <!-- レビュー用のフォーム -->
             <form action="{{ route('reviewer.submit-review', $review->id) }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label for="review" class="block text-sm font-medium text-gray-700">レビュー</label>
-                    <textarea id="review" name="review" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea>
+                    <textarea id="review" name="review" rows="4" class="mt-1 block w-full border-gray-300 shadow-sm"></textarea>
                 </div>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
                     レビューを送信
@@ -55,27 +55,65 @@
         </div>
     </div>
 
-    <!-- Fabric.jsのスクリプトを追加 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.1/fabric.min.js"></script>
+    <!-- 正しいFabric.jsのCDNリンクを追加 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
-        // Fabric.jsを使って画像編集機能を実装
-        const canvas = new fabric.Canvas('canvas', {
-            width: 800,
-            height: 600,
-            backgroundColor: '#f3f3f3'
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded event fired'); // デバッグログ
 
-        // スクリーンショット画像をキャンバスに追加
-        const screenshotUrl = "@{{ asset('storage/' . $article->screenshot_path) }}";
-        fabric.Image.fromURL(screenshotUrl, function(img) {
-            img.set({
-                left: 100,
-                top: 100,
-                angle: 0,
-                padding: 10,
-                cornersize: 10
+            const canvas = new fabric.Canvas('canvas', {
+                isDrawingMode: false,
+                freeDrawingBrush: {
+                    color: 'red',
+                    width: 5
+                }
             });
-            canvas.add(img);
+
+            // スクリーンショット画像をキャンバスに追加
+            const screenshotUrl = "{{ asset('storage/' . $article->screenshot_path) }}";
+            console.log('Screenshot URL:', screenshotUrl); // デバッグログ
+            if ("{{ $article->screenshot_path }}") {
+                fabric.Image.fromURL(screenshotUrl, function(img) {
+                    console.log('Image loaded'); // デバッグログ
+                    img.set({
+                        left: 0,
+                        top: 0,
+                        scaleX: canvas.width / img.width,
+                        scaleY: canvas.height / img.height,
+                        selectable: false // 画像の選択を無効にする
+                    });
+                    canvas.add(img);
+                    canvas.sendToBack(img); // 背景として設定
+                }, {
+                    crossOrigin: 'anonymous' // CORS設定
+                });
+            } else {
+                console.log('No screenshot path available'); // デバッグログ
+            }
+
+            // 描画モードの切り替え
+            document.getElementById('draw-mode').addEventListener('click', () => {
+                canvas.isDrawingMode = !canvas.isDrawingMode;
+                canvas.selection = !canvas.isDrawingMode; // オブジェクトの選択を無効化
+                if (canvas.isDrawingMode) {
+                    document.getElementById('draw-mode').innerText = '描画モード終了';
+                } else {
+                    document.getElementById('draw-mode').innerText = '描画モード';
+                }
+            });
+
+            // テキストモード
+            document.getElementById('text-mode').addEventListener('click', () => {
+                const text = new fabric.IText('ここにテキスト', {
+                    left: 50,
+                    top: 50,
+                    fill: 'red'
+                });
+                canvas.add(text);
+                canvas.setActiveObject(text);
+                text.enterEditing();
+                text.selectAll();
+            });
         });
     </script>
 </body>
