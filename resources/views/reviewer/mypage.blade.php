@@ -69,23 +69,29 @@
         <p class="text-gray-600 italic">現在レビュー中の記事はありません。</p>
     @else
         <ul class="space-y-4">
-            @foreach($ongoingReviews as $review)
-                <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
-                    <div>
-                        <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
-                        @if($review->article->screenshot_path)
-                            <a href="{{ asset('storage/' . $review->article->screenshot_path) }}" target="_blank" class="ml-4 text-blue-600 hover:text-blue-800 transition duration-300">スクリーンショットを見る</a>
-                        @endif
-                        <p class="text-sm text-red-500">あと{{ remainingTime($review->limit_time) }}以内にレビューを返却してください</p>
-                    </div>
-                    <form action="{{ route('reviewer.accept-review', $review->article->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                            レビューを作成する
-                        </button>
-                    </form>
-                </li>
-            @endforeach
+        @foreach($ongoingReviews as $review)
+    <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+        <div>
+            <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
+            <p class="text-sm text-red-500">あと{{ remainingTime($review->limit_time) }}以内にレビューを返却してください</p>
+        </div>
+        @if($review->article->draft)
+            <form action="{{ route('reviewer.review', $review->id) }}" method="GET">
+                @csrf
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                    下書きを続ける
+                </button>
+            </form>
+        @else
+            <form action="{{ route('reviewer.review', $review->id) }}" method="GET">
+                @csrf
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                    レビューを作成する
+                </button>
+            </form>
+        @endif
+    </li>
+@endforeach
         </ul>
     @endif
 </div>

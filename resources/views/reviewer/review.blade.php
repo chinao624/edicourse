@@ -45,7 +45,7 @@
 
             <!-- Fabric.jsを使って画像編集するためのキャンバスをここに追加 -->
              <div class="canvas-container">
-            <canvas id="canvas" ></canvas>
+            <canvas id="canvas"></canvas>
              </div>
 
             <!-- 描画モード選択ボタン -->
@@ -68,123 +68,183 @@
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
                     レビューを送信
                 </button>
+                <button type="button" id="save-draft" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                    下書き保存
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- 最新のFabric.jsのCDNリンクを追加 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <script>
-let canvas, zoomLevel = 1;
-let isDrawingMode = false;
-let isErasing = false;
+    <div id="raw-draft-data" style="display:none;">{{ $draftData ?? 'No draft data' }}</div>
 
+<!-- 最新のFabric.jsのCDNリンクを追加 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded event fired');
+
+    const rawDraftDataElement = document.getElementById('raw-draft-data');
+    const rawDraftData = rawDraftDataElement ? rawDraftDataElement.textContent : null;
+    console.log('Raw draft data:', rawDraftData);
+
+    let canvas, zoomLevel = 1;
+    let isDrawingMode = false;
+    let isEraserMode = false;
+    let isErasing = false;
+
     canvas = new fabric.Canvas('canvas', {
-        isDrawingMode: false,
-        freeDrawingBrush: new fabric.PencilBrush(canvas)
+        isDrawingMode: false
     });
 
+    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
     canvas.freeDrawingBrush.color = 'red';
-    canvas.freeDrawingBrush.width = 10; 
+    canvas.freeDrawingBrush.width = 10;
 
-    const screenshotUrl = "{{ asset('storage/' . $article->screenshot_path) }}";
-    if ("{{ $article->screenshot_path }}") {
-        fabric.Image.fromURL(screenshotUrl, function(img) {
-            const containerWidth = document.querySelector('.canvas-container').offsetWidth;
-            const scale = containerWidth / img.width;
-            
-            canvas.setWidth(containerWidth);
-            canvas.setHeight(img.height * scale);
-            
-            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                scaleX: scale,
-                scaleY: scale
-            });
-        }, {crossOrigin: 'anonymous'});
+
+    let draftData;
+    try {
+        draftData = rawDraftData ? JSON.parse(rawDraftData) : null;
+        console.log('Parsed draft data:', draftData);
+    } catch (error) {
+        console.error('Error parsing draft data:', error);
+        console.log('Problematic draft data:', rawDraftData);
+        draftData = null;
     }
+
+    if (draftData) {
+        canvas.loadFromJSON(draftData, canvas.renderAll.bind(canvas));
+    }
+    
+    const screenshotUrl = "{{ asset('storage/' . $article->screenshot_path) }}";
+if (screenshotUrl) {
+    fabric.Image.fromURL(screenshotUrl, function(img) {
+        if (!img) {
+            console.error('Failed to load screenshot');
+            return;
+        }
+        const containerWidth = document.querySelector('.canvas-container').offsetWidth;
+        const scale = containerWidth / img.width;
+        
+        canvas.setWidth(containerWidth);
+        canvas.setHeight(img.height * scale);
+        
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+            scaleX: scale,
+            scaleY: scale
+        });
+    }, {crossOrigin: 'anonymous'});
+} else {
+    console.log('No screenshot URL provided');
+}
 
     // ズーム機能
     document.getElementById('zoom-in').addEventListener('click', () => zoom(1.1));
     document.getElementById('zoom-out').addEventListener('click', () => zoom(0.9));
 
-
-// 描画モードの切り替え
-document.getElementById('draw-mode').addEventListener('click', () => {
-    isDrawingMode = !isDrawingMode;
-    isEraserMode = false;
-    canvas.isDrawingMode = isDrawingMode;
-    if (isDrawingMode) {
-        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-        canvas.freeDrawingBrush.color = 'red';
-        canvas.freeDrawingBrush.width = 10;
-        document.getElementById('draw-mode').innerText = '描画モード終了';
-    } else {
-        document.getElementById('draw-mode').innerText = '描画モード';
-    }
-    canvas.renderAll();
-});
-
-// 消しゴムモード
-document.getElementById('erase-mode').addEventListener('click', () => {
-    isEraserMode = true;
-    isDrawingMode = false;
-    canvas.isDrawingMode = false;
-    document.getElementById('draw-mode').innerText = '描画モード';
-    canvas.renderAll();
-});
-
-// マウスイベントの処理
-canvas.on('mouse:down', startErasing);
-canvas.on('mouse:move', eraseObjects);
-canvas.on('mouse:up', stopErasing);
-
-let isErasing = false;
-
-function startErasing(event) {
-    if (!isEraserMode) return;
-    isErasing = true;
-}
-
-function eraseObjects(event) {
-    if (!isErasing || !isEraserMode) return;
-    const pointer = canvas.getPointer(event.e);
-    const objects = canvas.getObjects();
-    objects.forEach(obj => {
-        if (obj.containsPoint(pointer)) {
-            canvas.remove(obj);
+    // 描画モードの切り替え
+    document.getElementById('draw-mode').addEventListener('click', () => {
+        isDrawingMode = !isDrawingMode;
+        isEraserMode = false;
+        canvas.isDrawingMode = isDrawingMode;
+        if (isDrawingMode) {
+            canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+            canvas.freeDrawingBrush.color = 'red';
+            canvas.freeDrawingBrush.width = 10;
+            document.getElementById('draw-mode').innerText = '描画モード終了';
+        } else {
+            document.getElementById('draw-mode').innerText = '描画モード';
         }
+        document.getElementById('erase-mode').innerText = '消しゴムモード';
+        canvas.renderAll();
     });
-    canvas.renderAll();
-}
 
-function stopErasing() {
-    isErasing = false;
-}
+    // 消しゴムモード
+    document.getElementById('erase-mode').addEventListener('click', () => {
+        isEraserMode = !isEraserMode;
+        isDrawingMode = false;
+        canvas.isDrawingMode = false;
+        document.getElementById('draw-mode').innerText = '描画モード';
+        document.getElementById('erase-mode').innerText = isEraserMode ? '消しゴムモード終了' : '消しゴムモード';
+        canvas.renderAll();
+    });
+
+    // マウスイベントの処理
+    canvas.on('mouse:down', startErasing);
+    canvas.on('mouse:move', eraseObjects);
+    canvas.on('mouse:up', stopErasing);
+
+    function startErasing(event) {
+        if (!isEraserMode) return;
+        isErasing = true;
+    }
+
+    function eraseObjects(event) {
+        if (!isErasing || !isEraserMode) return;
+        const pointer = canvas.getPointer(event.e);
+        const objects = canvas.getObjects();
+        objects.forEach(obj => {
+            if (obj.containsPoint(pointer)) {
+                canvas.remove(obj);
+            }
+        });
+        canvas.renderAll();
+    }
+
+    function stopErasing() {
+        isErasing = false;
+    }
+
     // テキストモード
     document.getElementById('text-mode').addEventListener('click', () => {
         canvas.on('mouse:down', function(options) {
-        const text = new fabric.IText('テキストを入力', {
-            left: options.pointer.x,
-            top: options.pointer.y,
-            fill: 'red',
-            fontSize: 20
+            const text = new fabric.IText('テキストを入力', {
+                left: options.pointer.x,
+                top: options.pointer.y,
+                fill: 'red',
+                fontSize: 20
+            });
+            canvas.add(text);
+            canvas.setActiveObject(text);
+            text.enterEditing();
+            text.selectAll();
+            canvas.off('mouse:down');
         });
-        canvas.add(text);
-        canvas.setActiveObject(text);
-        text.enterEditing();
-        text.selectAll();
-        canvas.off('mouse:down');
     });
-});
 
-   // テキスト選択項目を削除
-   document.getElementById('delete-selected').addEventListener('click', () => {
+    // テキスト選択項目を削除
+    document.getElementById('delete-selected').addEventListener('click', () => {
         const activeObject = canvas.getActiveObject();
         if (activeObject) {
             canvas.remove(activeObject);
             canvas.renderAll();
         }
+    });
+
+    // レビューを下書き保存する
+    document.getElementById('save-draft').addEventListener('click', () => {
+        const draftData = JSON.stringify(canvas.toJSON());
+        fetch('{{ route("reviewer.save-draft", $review->id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ draft: draftData })
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok.');
+        }).then(data => {
+            if (data.success) {
+                alert('下書きが保存されました。');
+            } else {
+                alert('下書きの保存に失敗しました。');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('エラーが発生しました: ' + error.message);
+        });
     });
 
     function zoom(factor) {

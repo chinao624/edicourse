@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\ArticleComment;
+use App\Models\ReviewArticle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -432,6 +433,27 @@ public function review($id)
     return view('reviewer.review', compact('article'));
 }
 
-
+// レビュワー描画画像下書き保存メソッド
+public function saveDraft(Request $request, $reviewId)
+    {
+        Log::info('Saving draft attempt started for review ID: ' . $reviewId);
+    
+    $article = Article::find($reviewId);
+    if ($article) {
+        Log::info('Article found. Current draft data:', ['data' => $article->draft]);
+        
+        $draftData = $request->input('draft');
+        $article->draft = json_encode($draftData);
+        Log::info('New draft data:', ['data' => $article->draft]);
+        
+        $article->save();
+        Log::info('Draft saved successfully');
+        
+        return response()->json(['success' => true]);
+    } else {
+        Log::warning('Article not found for review ID: ' . $reviewId);
+        return response()->json(['success' => false], 404);
+    }
+}
 }
 

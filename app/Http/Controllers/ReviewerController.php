@@ -10,6 +10,7 @@ use App\Models\Reviewer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class ReviewerController extends Controller
 {
@@ -76,12 +77,18 @@ public function acceptReview(Article $article)
 }
 
 // レビューページ用メソッド
-public function showReviewPage($id)
+public function showReviewPage(ReviewArticle $review)
 {
-    $review = ReviewArticle::with('article')->findOrFail($id);
     $article = $review->article;
+    $draftData = $article->draft;
 
-    return view('reviewer.review', compact('review','article'));
+    Log::info('Showing review page', [
+        'review_id' => $review->id,
+        'article_id' => $article->id,
+        'draft_data' => $draftData
+    ]);
+
+    return view('reviewer.review', compact('review', 'article', 'draftData'));
 }
 
 public function delete(Request $request)
