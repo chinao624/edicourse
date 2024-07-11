@@ -23,8 +23,19 @@
             border-color: #6574cd; 
             outline: none; /* デフォルトのフォーカススタイルを削除 */
         }
+
+        .canvas-container {
+        max-width: 100%;
+        max-height: 80vh;
+        overflow: auto;
+        margin-bottom: 20px;
+    }
+    #canvas {
+        border: 1px solid #ccc;
+    }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen text-gray-800">
     <div class="container max-w-4xl mx-auto p-8">
         <div class="bg-white rounded-xl shadow-lg p-8">
@@ -33,12 +44,16 @@
             </h1>
 
             <!-- Fabric.jsを使って画像編集するためのキャンバスをここに追加 -->
-            <canvas id="canvas" width="800" height="600"></canvas>
+             <div class="canvas-container">
+            <canvas id="canvas" ></canvas>
+             </div>
 
             <!-- 描画モード選択ボタン -->
-            <div class="mt-4">
+            <div class="mt-8">
                 <button id="draw-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">描画モード</button>
                 <button id="text-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">テキストモード</button>
+                <button id="zoom-in" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">拡大</button>
+                <button id="zoom-out" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">縮小</button>
             </div>
 
             <!-- レビュー用のフォーム -->
@@ -55,66 +70,76 @@
         </div>
     </div>
 
-    <!-- 正しいFabric.jsのCDNリンクを追加 -->
+    <!-- 最新のFabric.jsのCDNリンクを追加 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOMContentLoaded event fired'); // デバッグログ
+let canvas, zoomLevel = 1;
 
-            const canvas = new fabric.Canvas('canvas', {
-                isDrawingMode: false,
-                freeDrawingBrush: {
-                    color: 'red',
-                    width: 5
-                }
+document.addEventListener('DOMContentLoaded', () => {
+    canvas = new fabric.Canvas('canvas', {
+        isDrawingMode: false,
+        freeDrawingBrush: new fabric.PencilBrush(canvas)
+    });
+
+    canvas.freeDrawingBrush.color = 'red';
+    canvas.freeDrawingBrush.width = 10; 
+
+    const screenshotUrl = "{{ asset('storage/' . $article->screenshot_path) }}";
+    if ("{{ $article->screenshot_path }}") {
+        fabric.Image.fromURL(screenshotUrl, function(img) {
+            const containerWidth = document.querySelector('.canvas-container').offsetWidth;
+            const scale = containerWidth / img.width;
+            
+            canvas.setWidth(containerWidth);
+            canvas.setHeight(img.height * scale);
+            
+            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                scaleX: scale,
+                scaleY: scale
             });
+        }, {crossOrigin: 'anonymous'});
+    }
 
-            // スクリーンショット画像をキャンバスに追加
-            const screenshotUrl = "{{ asset('storage/' . $article->screenshot_path) }}";
-            console.log('Screenshot URL:', screenshotUrl); // デバッグログ
-            if ("{{ $article->screenshot_path }}") {
-                fabric.Image.fromURL(screenshotUrl, function(img) {
-                    console.log('Image loaded'); // デバッグログ
-                    img.set({
-                        left: 0,
-                        top: 0,
-                        scaleX: canvas.width / img.width,
-                        scaleY: canvas.height / img.height,
-                        selectable: false // 画像の選択を無効にする
-                    });
-                    canvas.add(img);
-                    canvas.sendToBack(img); // 背景として設定
-                }, {
-                    crossOrigin: 'anonymous' // CORS設定
-                });
-            } else {
-                console.log('No screenshot path available'); // デバッグログ
-            }
+    // ズーム機能
+    document.getElementById('zoom-in').addEventListener('click', () => zoom(1.1));
+    document.getElementById('zoom-out').addEventListener('click', () => zoom(0.9));
 
-            // 描画モードの切り替え
-            document.getElementById('draw-mode').addEventListener('click', () => {
-                canvas.isDrawingMode = !canvas.isDrawingMode;
-                canvas.selection = !canvas.isDrawingMode; // オブジェクトの選択を無効化
-                if (canvas.isDrawingMode) {
-                    document.getElementById('draw-mode').innerText = '描画モード終了';
-                } else {
-                    document.getElementById('draw-mode').innerText = '描画モード';
-                }
-            });
+    // 描画モードの切り替え
+    document.getElementById('draw-mode').addEventListener('click', () => {
+        canvas.isDrawingMode = !canvas.isDrawingMode;
+        canvas.selection = !canvas.isDrawingMode; // オブジェクトの選択を無効化
+        if (canvas.isDrawingMode) {
+            document.getElementById('draw-mode').innerText = '描画モード終了';
+        } else {
+            document.getElementById('draw-mode').innerText = '描画モード';
+        }
+    });
 
-            // テキストモード
-            document.getElementById('text-mode').addEventListener('click', () => {
-                const text = new fabric.IText('ここにテキスト', {
-                    left: 50,
-                    top: 50,
-                    fill: 'red'
-                });
-                canvas.add(text);
-                canvas.setActiveObject(text);
-                text.enterEditing();
-                text.selectAll();
-            });
+    // テキストモード
+    document.getElementById('text-mode').addEventListener('click', () => {
+        canvas.on('mouse:down', function(options) {
+        const text = new fabric.IText('テキストを入力', {
+            left: options.pointer.x,
+            top: options.pointer.y,
+            fill: 'red',
+            fontSize: 20
         });
-    </script>
+        canvas.add(text);
+        canvas.setActiveObject(text);
+        text.enterEditing();
+        text.selectAll();
+        canvas.off('mouse:down');
+    });
+});
+
+    function zoom(factor) {
+        zoomLevel *= factor;
+        canvas.setZoom(zoomLevel);
+        canvas.setWidth(canvas.width * factor);
+        canvas.setHeight(canvas.height * factor);
+        canvas.renderAll();
+    }
+});
+</script>
 </body>
 </html>
