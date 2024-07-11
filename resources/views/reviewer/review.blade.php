@@ -49,11 +49,13 @@
              </div>
 
             <!-- 描画モード選択ボタン -->
-            <div class="mt-8">
-                <button id="draw-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">描画モード</button>
-                <button id="text-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">テキストモード</button>
-                <button id="zoom-in" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">拡大</button>
-                <button id="zoom-out" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">縮小</button>
+            <div class="mt-8 mb-8">
+            <button id="draw-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">描画モード</button>
+    <button id="erase-mode" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full">消しゴムモード</button>
+    <button id="text-mode" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">テキストモード</button>
+    <button id="delete-selected" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full">選択項目を削除</button>
+    <button id="zoom-in" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">拡大</button>
+    <button id="zoom-out" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">縮小</button>
             </div>
 
             <!-- レビュー用のフォーム -->
@@ -74,6 +76,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
 let canvas, zoomLevel = 1;
+let isDrawingMode = false;
+let isErasing = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     canvas = new fabric.Canvas('canvas', {
@@ -104,17 +108,59 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('zoom-in').addEventListener('click', () => zoom(1.1));
     document.getElementById('zoom-out').addEventListener('click', () => zoom(0.9));
 
-    // 描画モードの切り替え
-    document.getElementById('draw-mode').addEventListener('click', () => {
-        canvas.isDrawingMode = !canvas.isDrawingMode;
-        canvas.selection = !canvas.isDrawingMode; // オブジェクトの選択を無効化
-        if (canvas.isDrawingMode) {
-            document.getElementById('draw-mode').innerText = '描画モード終了';
-        } else {
-            document.getElementById('draw-mode').innerText = '描画モード';
+
+// 描画モードの切り替え
+document.getElementById('draw-mode').addEventListener('click', () => {
+    isDrawingMode = !isDrawingMode;
+    isEraserMode = false;
+    canvas.isDrawingMode = isDrawingMode;
+    if (isDrawingMode) {
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        canvas.freeDrawingBrush.color = 'red';
+        canvas.freeDrawingBrush.width = 10;
+        document.getElementById('draw-mode').innerText = '描画モード終了';
+    } else {
+        document.getElementById('draw-mode').innerText = '描画モード';
+    }
+    canvas.renderAll();
+});
+
+// 消しゴムモード
+document.getElementById('erase-mode').addEventListener('click', () => {
+    isEraserMode = true;
+    isDrawingMode = false;
+    canvas.isDrawingMode = false;
+    document.getElementById('draw-mode').innerText = '描画モード';
+    canvas.renderAll();
+});
+
+// マウスイベントの処理
+canvas.on('mouse:down', startErasing);
+canvas.on('mouse:move', eraseObjects);
+canvas.on('mouse:up', stopErasing);
+
+let isErasing = false;
+
+function startErasing(event) {
+    if (!isEraserMode) return;
+    isErasing = true;
+}
+
+function eraseObjects(event) {
+    if (!isErasing || !isEraserMode) return;
+    const pointer = canvas.getPointer(event.e);
+    const objects = canvas.getObjects();
+    objects.forEach(obj => {
+        if (obj.containsPoint(pointer)) {
+            canvas.remove(obj);
         }
     });
+    canvas.renderAll();
+}
 
+function stopErasing() {
+    isErasing = false;
+}
     // テキストモード
     document.getElementById('text-mode').addEventListener('click', () => {
         canvas.on('mouse:down', function(options) {
@@ -132,6 +178,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+   // テキスト選択項目を削除
+   document.getElementById('delete-selected').addEventListener('click', () => {
+        const activeObject = canvas.getActiveObject();
+        if (activeObject) {
+            canvas.remove(activeObject);
+            canvas.renderAll();
+        }
+    });
+
     function zoom(factor) {
         zoomLevel *= factor;
         canvas.setZoom(zoomLevel);
@@ -139,6 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.setHeight(canvas.height * factor);
         canvas.renderAll();
     }
+
+    // オブジェクトの選択を有効にする
+    canvas.selection = true;
 });
 </script>
 </body>
