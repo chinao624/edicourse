@@ -219,40 +219,34 @@ if (screenshotUrl) {
     });
 
     // 消しゴムモード
-    document.getElementById('erase-mode').addEventListener('click', () => {
-        isEraserMode = !isEraserMode;
-        isDrawingMode = false;
-        canvas.isDrawingMode = false;
-        document.getElementById('draw-mode').innerText = '描画モード';
-        document.getElementById('erase-mode').innerText = isEraserMode ? '消しゴムモード終了' : '消しゴムモード';
-        canvas.renderAll();
-    });
+document.getElementById('erase-mode').addEventListener('click', () => {
+    isEraserMode = !isEraserMode;
+    isDrawingMode = false;
+    canvas.isDrawingMode = false;
+    canvas.selection = !isEraserMode; // 消しゴムモード時は選択を無効化
+    document.getElementById('draw-mode').innerText = '描画モード';
+    document.getElementById('erase-mode').innerText = isEraserMode ? '消しゴムモード終了' : '消しゴムモード';
+    canvas.defaultCursor = isEraserMode ? 'crosshair' : 'default';
+    canvas.hoverCursor = isEraserMode ? 'crosshair' : 'move';
+    canvas.renderAll();
+});
 
-    // マウスイベントの処理
-    canvas.on('mouse:down', startErasing);
-    canvas.on('mouse:move', eraseObjects);
-    canvas.on('mouse:up', stopErasing);
-
-    function startErasing(event) {
-        if (!isEraserMode) return;
-        isErasing = true;
+// クリックイベントの処理
+canvas.on('mouse:down', function(event) {
+    if (!isEraserMode) return;
+    
+    const pointer = canvas.getPointer(event.e);
+    const objects = canvas.getObjects();
+    
+    for (let i = objects.length - 1; i >= 0; i--) {
+        if (objects[i].containsPoint(pointer)) {
+            canvas.remove(objects[i]);
+            canvas.renderAll();
+            break; // 最前面のオブジェクトのみを削除
+        }
     }
+});
 
-    function eraseObjects(event) {
-        if (!isErasing || !isEraserMode) return;
-        const pointer = canvas.getPointer(event.e);
-        const objects = canvas.getObjects();
-        objects.forEach(obj => {
-            if (obj.containsPoint(pointer)) {
-                canvas.remove(obj);
-            }
-        });
-        canvas.renderAll();
-    }
-
-    function stopErasing() {
-        isErasing = false;
-    }
 
     // テキストモード
     document.getElementById('text-mode').addEventListener('click', () => {
