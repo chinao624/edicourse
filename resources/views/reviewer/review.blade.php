@@ -111,7 +111,7 @@
                 @csrf
                 <div class="mb-4">
                     <label for="review" class="block text-sm font-medium text-gray-700 mt-8">レビューコメント</label>
-                    <textarea id="review" name="review" rows="4" class="mt-1 block w-full border-gray-300 shadow-sm"></textarea>
+                    <textarea id="review-comment" name="review" rows="4" class="mt-1 block w-full border-gray-300 shadow-sm">{{ $reviewComment ??'' }}</textarea>
                 </div>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
                     レビューを送信
@@ -124,6 +124,8 @@
     </div>
 
     <div id="raw-draft-data" style="display:none;">{{ $draftData ?? 'No draft data' }}</div>
+    <div id="raw-review-comment" style="display:none;">{{ $reviewComment ?? '' }}</div>
+
 
 <!-- 最新のFabric.jsのCDNリンクを追加 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
@@ -134,6 +136,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawDraftDataElement = document.getElementById('raw-draft-data');
     const rawDraftData = rawDraftDataElement ? rawDraftDataElement.textContent : null;
     console.log('Raw draft data:', rawDraftData);
+
+    const reviewCommentElement = document.getElementById('review-comment');
+    const rawReviewCommentElement = document.getElementById('raw-review-comment');
+    const savedReviewComment = rawReviewCommentElement ? rawReviewCommentElement.textContent : '';
+    
+    if (reviewCommentElement && savedReviewComment) {
+        reviewCommentElement.value = savedReviewComment;
+    }
+    console.log('Loaded review comment:', savedReviewComment);
 
     let canvas, zoomLevel = 1;
     let isDrawingMode = false;
@@ -151,12 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let draftData;
     try {
-        draftData = rawDraftData ? JSON.parse(rawDraftData) : null;
+        draftData = rawDraftData && rawDraftData !== 'No draft data' ? JSON.parse(rawDraftData) : null;
         console.log('Parsed draft data:', draftData);
     } catch (error) {
         console.error('Error parsing draft data:', error);
         console.log('Problematic draft data:', rawDraftData);
         draftData = null;
+        alert('下書きデータの読み込みに失敗しました。新しいレビューを始めます。');
     }
 
     if (draftData) {
@@ -270,30 +282,38 @@ if (screenshotUrl) {
 
     // レビューを下書き保存する
     document.getElementById('save-draft').addEventListener('click', () => {
-        const draftData = JSON.stringify(canvas.toJSON());
-        fetch('{{ route("reviewer.save-draft", $review->id) }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ draft: draftData })
-        }).then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error('Network response was not ok.');
-        }).then(data => {
-            if (data.success) {
-                alert('下書きが保存されました。');
-            } else {
-                alert('下書きの保存に失敗しました。');
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('エラーが発生しました: ' + error.message);
-        });
+    const draftData = JSON.stringify(canvas.toJSON());
+    const reviewComment = document.getElementById('review-comment').value;
+    
+    fetch('{{ route("reviewer.save-draft", $review->id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ 
+            draft: draftData,
+            review_comment: reviewComment
+        })
+    }).then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
+            });
+        }
+        return response.json();
+    }).then(data => {
+        console.log('Response data:', data);  // デバッグ用
+        if (data.success) {
+            alert('下書きとレビューコメントが保存されました。');
+        } else {
+            throw new Error(data.message || '下書きとレビューコメントの保存に失敗しました。');
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        alert('エラーが発生しました: ' + error.message);
     });
+});
 
     function zoom(factor) {
         zoomLevel *= factor;

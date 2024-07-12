@@ -81,14 +81,16 @@ public function showReviewPage(ReviewArticle $review)
 {
     $article = $review->article;
     $draftData = $article->draft;
+    $reviewComment = $article->review_comment; 
 
     Log::info('Showing review page', [
         'review_id' => $review->id,
         'article_id' => $article->id,
-        'draft_data' => $draftData
+        'draft_data' => $draftData,
+        'review_comment' => $reviewComment
     ]);
 
-    return view('reviewer.review', compact('review', 'article', 'draftData'));
+    return view('reviewer.review', compact('review', 'article', 'draftData','reviewComment'));
 }
 
 public function delete(Request $request)

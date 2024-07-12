@@ -11,7 +11,7 @@ class Article extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'mainimg', 'title', 'lead', 'img1', 'cap1', 'img2', 'cap2', 'closing', 'genre','status'
+        'user_id', 'mainimg', 'title', 'lead', 'img1', 'cap1', 'img2', 'cap2', 'closing', 'genre','status', 'draft','review_comment',
     ];
 
     public function user()
@@ -22,6 +22,11 @@ class Article extends Model
     public function comments()
 {
     return $this->hasMany(ArticleComment::class);
+}
+   
+public function reviewArticle()
+{
+    return $this->hasOne(ReviewArticle::class);
 }
 
    }

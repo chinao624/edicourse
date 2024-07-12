@@ -437,23 +437,41 @@ public function review($id)
 public function saveDraft(Request $request, $reviewId)
 {
     Log::info('Saving draft attempt started for review ID: ' . $reviewId);
-    
+
     $reviewArticle = ReviewArticle::find($reviewId);
-    if ($reviewArticle && $reviewArticle->article) {
-        $article = $reviewArticle->article;
-        Log::info('Article found. Current draft data:', ['data' => $article->draft]);
-        
-        $draftData = $request->input('draft');
-        $article->draft = json_encode($draftData);
-        Log::info('New draft data:', ['data' => $article->draft]);
-        
-        $article->save();
-        Log::info('Draft saved successfully');
-        
-        return response()->json(['success' => true]);
-    } else {
+
+    if (!$reviewArticle || !$reviewArticle->article) {
         Log::warning('ReviewArticle or associated Article not found for review ID: ' . $reviewId);
-        return response()->json(['success' => false], 404);
+        return response()->json(['success' => false, 'message' => 'Review not found'], 404);
+    }
+
+    // 認証チェック
+    if ($reviewArticle->reviewer_id !== Auth::guard('reviewer')->id()) {
+        Log::warning('Unauthorized attempt to save draft for review ID: ' . $reviewId);
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $article = $reviewArticle->article;
+
+    // バリデーション
+    $validatedData = $request->validate([
+        'draft' => 'required|json',
+        'review_comment' => 'nullable|string',
+    ]);
+
+    try {
+        $article->draft = $validatedData['draft'];
+        $article->review_comment = $validatedData['review_comment'];
+
+        Log::info('New draft data:', ['data' => $article->draft, 'review_comment' => $article->review_comment]);
+
+        $article->save();
+        Log::info('Draft and review comment saved successfully');
+
+        return response()->json(['success' => true, 'message' => 'Draft saved successfully']);
+    } catch (\Exception $e) {
+        Log::error('Failed to save draft: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to save draft'], 500);
     }
 }
 }
