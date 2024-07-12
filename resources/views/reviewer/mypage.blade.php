@@ -44,17 +44,14 @@
             <p class="text-gray-600 italic">現在、レビューリクエストされている記事はありません。</p>
         @else
             <ul class="space-y-4">
-                @foreach($reviewRequestedArticles as $article)
-                    <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
-                        <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
-                        <form action="{{ route('reviewer.accept-review', $article->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                                私がレビューします！
-                            </button>
-                        </form>
-                    </li>
-                @endforeach
+            @foreach($reviewRequestedArticles as $article)
+                <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+                    <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
+                    <button data-article-id="{{ $article->id }}" class="accept-review-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                        私がレビューします！
+                    </button>
+                </li>
+            @endforeach
             </ul>
         @endif
     </div>
@@ -111,7 +108,7 @@
                 @foreach($myReviews as $review)
                     <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
                         <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
-                        <!-- ゆくゆくレビュー画像へのリンクをここに追加する！ -->
+                        
                     </li>
                 @endforeach
             </ul>
@@ -130,6 +127,42 @@
     </div>
 
     <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.accept-review-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const articleId = this.getAttribute('data-article-id');
+                acceptReview(articleId);
+            });
+        });
+    });
+
+    function acceptReview(articleId) {
+        if (confirm('このレビューを受け付けますか？')) {
+            fetch(`/reviewer/accept-review/${articleId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('レビュー受付に失敗しました: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('レビュー受付中にエラーが発生しました。');
+            });
+        }
+    }
+
+
         function confirmDeleteAccount() {
             return confirm('作成したレビューとユーザー情報がすべて削除されます。本当に退会しますか？');
         }

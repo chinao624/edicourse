@@ -44,16 +44,18 @@ class ReviewerController extends Controller
 public function showMypage()
 {
     $reviewer = Auth::guard('reviewer')->user();
-    $reviewRequestedArticles = Article::where('status', 'review_requested')->get();
+    $reviewRequestedArticles = Article::where('status', 'review_requested')->distinct()->get();
     $myReviews = ReviewArticle::where('reviewer_id', $reviewer->id)
                               ->where('status', 'completed')
                               ->with('article')
+                              ->distinct()
                               ->get();
 
     // 「レビューします」といった本人には記事は表示させておく
     $ongoingReviews = ReviewArticle::where('reviewer_id', $reviewer->id)
                               ->where('status', 'pending')
                               ->with('article')
+                              ->distinct()
                               ->get();
 
     return view('reviewer.mypage',compact('reviewer','reviewRequestedArticles','myReviews','ongoingReviews'));
@@ -63,15 +65,16 @@ public function acceptReview(Article $article)
 {
     $reviewer = auth()->guard('reviewer')->user();
     
-    $article->status = 'under_review';
-    $article->save();
+    $article->update(['status' => 'under_review']);
 
-    ReviewArticle::create([
-        'reviewer_id' => $reviewer->id,
-        'article_id' => $article->id,
-        'status' => 'pending',
-        'limit_time' => now()->addHours(24),
-    ]);
+    ReviewArticle::updateOrCreate(
+        ['article_id' => $article->id],
+        [
+            'reviewer_id' => $reviewer->id,
+            'status' => 'pending',
+            'limit_time' => now()->addHours(24),
+        ]
+    );
 
     return redirect()->route('reviewer.review', ['review' => $article->id])->with('success', 'レビューを受け付けました。');
 }

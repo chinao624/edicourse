@@ -360,7 +360,20 @@ public function requestReview(Article $article)
         return response()->json(['success' => false, 'message' => 'レビューを依頼する権限がありません。'], 403);
     }
 
+    if ($article->status === 'review_requested') {
+        return response()->json(['success' => false, 'message' => 'この記事は既にレビューが依頼されています。'], 400);
+    }
+
     $article->update(['status' => 'review_requested']);
+
+    ReviewArticle::updateOrCreate(
+        ['article_id' => $article->id],
+        [
+            'status' => 'pending',
+            'limit_time' => now()->addHours(24),
+            'reviewer_id' => null  // レビュワーはまだ割り当てられていない
+        ]
+    );
     return response()->json(['success' => true, 'message' => 'レビューが依頼されました']);
 }
 

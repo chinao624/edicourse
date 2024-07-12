@@ -46,39 +46,42 @@
         <p class="text-gray-600 italic">まだ記事がありません。</p>
     @else
         <ul class="space-y-4">
-            @foreach($articles as $article)
-                <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
-                    <div>
-                        <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
-                        <span class="ml-2 text-sm text-gray-500">
-                            @switch($article->status)
-                                @case('draft')
-                                    (下書き)
-                                    @break
-                                @case('published')
-                                    (公開中)
-                                    @break
-                                @case('review_requested')
-                                    (レビュー依頼中)
-                                    @break
-                                @case('under_review')
-                                    (レビュー中)
-                                    @break
-                                @default
-                                    ({{ $article->status }})
-                            @endswitch
-                        </span>
-                    </div>
-                    <div class="flex items-center">
-                        <a href="{{ route('articles.edit', $article->id) }}" class="text-blue-500 hover:text-blue-700 transition duration-300 text-sm mr-4">編集</a>
-                        <form action="{{ route('articles.destroy', $article->id) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-400 hover:text-red-600 transition duration-300 text-sm" onclick="return confirmDelete()">削除</button>
-                        </form>
-                    </div>
-                </li>
-            @endforeach
+        @foreach($articles as $article)
+        <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+    <div>
+        <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
+        <span class="ml-2 text-sm text-gray-500">
+            @switch($article->status)
+                @case('draft')
+                    (下書き)
+                    @break
+                @case('published')
+                    (公開中)
+                    @break
+                @case('review_requested')
+                    (レビュー依頼中)
+                    @break
+                @case('under_review')
+                    (レビュー中)
+                    @break
+                @default
+                    ({{ $article->status }})
+            @endswitch
+        </span>
+    </div>
+    <div class="flex items-center">
+        @if($article->status == 'draft')
+            <button data-article-id="{{ $article->id }}" class="review-request-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full mr-2">レビュー依頼</button>
+        @endif
+        <a href="{{ route('articles.edit', $article->id) }}" class="text-blue-500 hover:text-blue-700 transition duration-300 text-sm mr-4">編集</a>
+        <form action="{{ route('articles.destroy', $article->id) }}" method="POST" class="inline">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="text-red-400 hover:text-red-600 transition duration-300 text-sm" onclick="return confirmDelete()">削除</button>
+        </form>
+    </div>
+</li>
+@endforeach
         </ul>
     @endif
 </div>
@@ -100,6 +103,40 @@
         function confirmDeleteAccount() {
             return confirm('作成した記事とユーザー情報がすべて削除されます。本当に退会しますか？');
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.review-request-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const articleId = this.getAttribute('data-article-id');
+            requestReview(articleId);
+        });
+    });
+});
+
+function requestReview(articleId) {
+    if (confirm('この記事のレビューを依頼しますか？')) {
+        fetch(`/articles/${articleId}/request-review`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('レビュー依頼に失敗しました: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('レビュー依頼中にエラーが発生しました。');
+        });
+    }
+}
     </script>
 </body>
 </html>
