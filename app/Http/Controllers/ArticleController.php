@@ -435,11 +435,12 @@ public function review($id)
 
 // レビュワー描画画像下書き保存メソッド
 public function saveDraft(Request $request, $reviewId)
-    {
-        Log::info('Saving draft attempt started for review ID: ' . $reviewId);
+{
+    Log::info('Saving draft attempt started for review ID: ' . $reviewId);
     
-    $article = Article::find($reviewId);
-    if ($article) {
+    $reviewArticle = ReviewArticle::find($reviewId);
+    if ($reviewArticle && $reviewArticle->article) {
+        $article = $reviewArticle->article;
         Log::info('Article found. Current draft data:', ['data' => $article->draft]);
         
         $draftData = $request->input('draft');
@@ -451,7 +452,7 @@ public function saveDraft(Request $request, $reviewId)
         
         return response()->json(['success' => true]);
     } else {
-        Log::warning('Article not found for review ID: ' . $reviewId);
+        Log::warning('ReviewArticle or associated Article not found for review ID: ' . $reviewId);
         return response()->json(['success' => false], 404);
     }
 }
