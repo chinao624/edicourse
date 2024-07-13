@@ -6,7 +6,9 @@ use App\Models\Article;
 use App\Models\ArticleComment;
 use App\Models\ReviewArticle;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -371,7 +373,7 @@ public function requestReview(Article $article)
         [
             'status' => 'pending',
             'limit_time' => now()->addHours(24),
-            'reviewer_id' => null  // レビュワーはまだ割り当てられていない
+            'reviewer_id' => null
         ]
     );
     return response()->json(['success' => true, 'message' => 'レビューが依頼されました']);
@@ -486,6 +488,38 @@ public function saveDraft(Request $request, $reviewId)
         Log::error('Failed to save draft: ' . $e->getMessage());
         return response()->json(['success' => false, 'message' => 'Failed to save draft'], 500);
     }
+}
+
+// レビュー取り下げメソッド
+public function withdrawReviewRequest(Article $article)
+{
+    if (Auth::id() !== $article->user_id) {
+        return response()->json(['success' => false, 'message' => 'この操作を行う権限がありません。'], 403);
+    }
+
+    if ($article->status !== 'review_requested') {
+        return response()->json(['success' => false, 'message' => 'この記事はレビュー依頼中ではありません。'], 400);
+    }
+
+    // トランザクションを使用してデータの整合性を保証
+    DB::transaction(function () use ($article) {
+        // レビュー依頼の取り下げ処理
+        $article->status = 'draft';
+        $article->save();
+
+        // ReviewArticleの状態を「取り下げ」に変更
+        $reviewArticle = $article->reviewArticle;
+        if ($reviewArticle) {
+            $reviewArticle->status = ReviewArticle::STATUS_WITHDRAWN;
+            $reviewArticle->withdrawn_at = now();
+            $reviewArticle->save();
+
+            // ここでレビュワーへの通知を送信させたいが。。。
+            // Notification::send($reviewArticle->reviewer, new ReviewWithdrawnNotification($article));
+        }
+    });
+
+    return response()->json(['success' => true, 'message' => 'レビュー依頼を取り下げました。']);
 }
 }
 

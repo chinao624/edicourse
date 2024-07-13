@@ -94,6 +94,9 @@ Route::middleware(['auth:web'])->group(function () {
 
     // 再投稿ルート
     Route::put('/articles/{id}/repost', [ArticleController::class, 'repost'])->name('articles.repost');
+
+    // レビュー依頼取り下げルート
+    Route::post('/articles/{article}/withdraw-review', [ArticleController::class, 'withdrawReviewRequest'])->name('articles.withdraw-review');
 });
 
 // Professor専用のルート

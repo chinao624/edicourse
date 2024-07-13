@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use App\Models\ReviewArticle;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,6 +38,18 @@ class AppServiceProvider extends ServiceProvider
         $url = config('app.url') . '/storage';
         config(['filesystems.disks.public.url' => $url]);
     }
+
+     // スケジューリングの設定
+     $this->app->booted(function () {
+        $schedule = $this->app->make(Schedule::class);
+
+        $schedule->call(function () {
+            ReviewArticle::where('status', 'withdrawn')
+                ->where('withdrawn_at', '<=', now()->subHours(24))
+                ->delete();
+        })->daily();
+    });
+}
      
     }
-}
+
