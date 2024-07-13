@@ -33,6 +33,9 @@
     <a href="{{ route('login') }}" class="px-3 py-1.5 bg-[#ffa07a] text-white text-sm font-semibold rounded-full hover:bg-[#fa8072] transition duration-300 shadow-md">学生エディターLogin</a>
     <a href="{{ route('professor.login') }}" class="px-3 py-1.5 bg-[#e0ffff] text-[#ff6347] text-sm font-semibold rounded-full hover:bg-white hover:text-[#ffa07a] transition duration-300 shadow-md">オブザーバーLogin</a>
   </div>
+  <div class="absolute right-10 top-20 mt-4 z-10">
+    <a href="{{ route('reviewer.login') }}" class="text-white hover:text-[#98fb98] transition duration-300 text-sm">レビュワーの方はこちら</a>
+  </div>
     <img id="header-image" src="{{ asset('header.jpg') }}" alt="header">
     <div class="absolute left-10 top-1/2 transform -translate-y-1/2"> 
         <h1 class="text-[#ff6347] hover:text-[#ff7f50] transition-colors duration-300 font-josefin text-8xl font-bold">

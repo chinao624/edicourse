@@ -7,11 +7,24 @@ use App\Http\Controllers\ProfessorController;
 use App\Http\Controllers\Auth\ProfessorLoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\ReviewerLoginController;
+use App\Http\Controllers\ReviewerController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = Storage::disk('public')->path($path);
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    return response()->file($fullPath);
+})->where('path', '.*');
 
 // ユーザー登録ルート
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -31,8 +44,17 @@ Route::post('professor/logout', [ProfessorLoginController::class, 'logout'])->na
 Route::get('professors/create', [ProfessorController::class, 'create'])->name('professors.create');
 Route::post('professors', [ProfessorController::class, 'store'])->name('professors.store');
 
-// 共通のダッシュボードルート（ユーザーまたはProfessor）
-Route::middleware(['auth:web,professor'])->group(function () {
+// Reviewer認証ルート
+Route::get('reviewer/login', [ReviewerLoginController::class, 'showLoginForm'])->name('reviewer.login');
+Route::post('reviewer/login', [ReviewerLoginController::class, 'login']);
+Route::post('reviewer/logout', [ReviewerLoginController::class, 'logout'])->name('reviewer.logout');
+
+// Reviewer登録ルート
+Route::get('reviewer/create', [ReviewerController::class, 'create'])->name('reviewer.create');
+Route::post('reviewer', [ReviewerController::class, 'store'])->name('reviewer.store');
+
+// 共通のダッシュボードルート（ユーザーまたはProfessorまたはreviewer）
+Route::middleware(['auth:web,professor,reviewer'])->group(function () {
     Route::get('/dashboard', [ArticleController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/genre/{genre}', [ArticleController::class, 'showByGenre'])->name('articles.genre');
 });
@@ -57,6 +79,24 @@ Route::middleware(['auth:web'])->group(function () {
 
     // 記事公開ルート
     Route::put('/articles/{id}/publish', [ArticleController::class, 'publish'])->name('articles.publish');
+
+    // 記事status表示ルート
+    Route::get('/mypage', [ArticleController::class, 'getUserArticlesWithStatus'])->name('mypage');
+
+    // レビュー依頼ルート
+    Route::post('/articles/{article}/request-review', [ArticleController::class, 'requestReview'])->name('articles.request-review');
+
+    // レビュー用スクリーンショット
+    Route::post('/articles/save-screenshot', [ArticleController::class, 'saveScreenshot'])->name('articles.save-screenshot');
+
+    // 下書きに戻すルート
+    Route::put('/articles/{article}/unpublish', [ArticleController::class, 'unpublish'])->name('articles.unpublish');
+
+    // 再投稿ルート
+    Route::put('/articles/{id}/repost', [ArticleController::class, 'repost'])->name('articles.repost');
+
+    // レビュー依頼取り下げルート
+    Route::post('/articles/{article}/withdraw-review', [ArticleController::class, 'withdrawReviewRequest'])->name('articles.withdraw-review');
 });
 
 // Professor専用のルート
@@ -67,6 +107,27 @@ Route::middleware(['auth:professor'])->group(function () {
     Route::post('/professor/delete', [ProfessorController::class, 'delete'])->name('professor.delete');
     Route::get('/professor/mypage/edit', [ProfessorController::class, 'edit'])->name('professor.mypage.edit');
     Route::post('/professor/mypage/update', [ProfessorController::class, 'update'])->name('professor.mypage.update');
+
+    // professorのコメントルート
+Route::get('/articles/{article}/comment/create', [ArticleController::class, 'createComment'])->name('article.comment.create');
+Route::post('/articles/{article}/comment', [ArticleController::class, 'storeComment'])->name('article.comment.store');
+//コメント編集・削除ルート
+Route::get('/comments/{comment}/edit', [ArticleController::class, 'editComment'])->name('article.comment.edit');
+Route::put('/comments/{comment}', [ArticleController::class, 'updateComment'])->name('article.comment.update');
+Route::delete('/comments/{comment}', [ArticleController::class, 'destroyComment'])->name('article.comment.destroy');
+
+});
+
+// reviewer専用ルート
+Route::middleware(['auth:reviewer'])->group(function () {
+    Route::get('/reviewer/mypage', [ReviewerController::class, 'showMypage'])->name('reviewer.mypage');
+    Route::get('/reviewer/mypage/edit', [ReviewerController::class, 'edit'])->name('reviewer.mypage.edit');
+    Route::post('/reviewer/mypage/update', [ReviewerController::class, 'update'])->name('reviewer.mypage.update');
+    Route::post('/reviewer/delete', [ReviewerController::class, 'delete'])->name('reviewer.delete');
+    Route::post('/reviewer/accept-review/{article}', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept-review');
+    Route::get('/reviewer/review/{review}', [ReviewerController::class, 'showReviewPage'])->name('reviewer.review');
+    Route::post('/reviewer/submit-review/{review}', [ReviewerController::class, 'submitReview'])->name('reviewer.submit-review');
+    Route::post('/reviewer/{review}/save-draft', [ArticleController::class, 'saveDraft'])->name('reviewer.save-draft');
 });
 
 // 記事表示ルート（認証不要）
@@ -84,6 +145,3 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset_password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-// professorのコメントルート
-Route::get('/articles/{article}/comment/create', [ArticleController::class, 'createComment'])->name('article.comment.create');
-Route::post('/articles/{article}/comment', [ArticleController::class, 'storeComment'])->name('article.comment.store');

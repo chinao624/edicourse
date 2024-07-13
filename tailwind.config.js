@@ -12,11 +12,7 @@ export default {
         'josefin':["Josefin Sans", ...defaultTheme.fontFamily.sans],
       }
     },
-    daisyui: {
-      themes: ["cupcake","pastel","lemonade","nord"],
-       
-    },
-  },
-  plugins: [require("daisyui")],
+     },
+  plugins: [],
 }
 
