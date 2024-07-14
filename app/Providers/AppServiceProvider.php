@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Vite::useManifestFilename('manifest.json');
+        
         Auth::provider('users', function ($app, array $config) {
             return new \Illuminate\Auth\EloquentUserProvider($app['hash'], \App\Models\User::class);
         });
