@@ -5,7 +5,11 @@
 
     RewriteEngine On
 
+<<<<<<< HEAD
  # 新しいストレージルール
+=======
+    # 新しいストレージルール
+>>>>>>> 87b562128834f4b94f8c003ef5d27481878e79ab
     RewriteRule ^storage/(.*)$ public/storage/$1 [L,NC]
 
     # Handle Authorization Header
@@ -22,5 +26,9 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 
+<<<<<<< HEAD
    
+=======
+    
+>>>>>>> 87b562128834f4b94f8c003ef5d27481878e79ab
 </IfModule>
