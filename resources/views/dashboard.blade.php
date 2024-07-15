@@ -7,10 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <title>Edicourse Media Dashboard</title>
-    <!-- <link rel="preload" as="style" href="https://chinao.sakura.ne.jp/edicourse2/build/assets/app-BxuIrj-R.css">
-    <link rel="modulepreload" href="https://chinao.sakura.ne.jp/edicourse2/build/assets/app-Bg1aHGgo.js">
-    <link rel="stylesheet" href="https://chinao.sakura.ne.jp/edicourse2/build/assets/app-BxuIrj-R.css">
-    <script type="module" src="https://chinao.sakura.ne.jp/edicourse2/build/assets/app-Bg1aHGgo.js"></script> -->
+    
     <style>
         body {
             font-family: 'Poppins', sans-serif;
