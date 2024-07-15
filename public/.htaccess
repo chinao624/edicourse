@@ -21,8 +21,7 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 
-    # Favicon rewrite rule
-RewriteRule ^favicon\.ico$ /edicourse2/favicon.ico [L]
+ 
 
     
 </IfModule>
