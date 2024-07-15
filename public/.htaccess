@@ -5,8 +5,7 @@
 
     RewriteEngine On
 
-    # 新しいストレージルール
-    RewriteRule ^storage/(.*)$ public/storage/$1 [L,NC]
+
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
@@ -21,6 +20,9 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+
+    # Favicon rewrite rule
+RewriteRule ^favicon\.ico$ /edicourse2/favicon.ico [L]
 
     
 </IfModule>

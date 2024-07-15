@@ -8,7 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>Welcome to Edicourse</title>
     <script src="{{ asset('js/jquery-2.1.3.min.js') }}"></script>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+<link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
 
   <style>
     .header-image-container {
