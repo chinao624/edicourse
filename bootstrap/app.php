@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustHosts(at: [env('TRUSTED_HOSTS', 'localhost')]);
+
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
+        
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
         
        
