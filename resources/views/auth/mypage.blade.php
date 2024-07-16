@@ -66,6 +66,14 @@
                 @case('under_review')
                     (レビュー中)
                     @break
+                    @case('reviewed')
+                    @if($article->review)
+            <a href="{{ route('articles.view-review', $article->review->id) }}">レビュー返却！</a>
+        @else
+            (レビュー返却済み)
+        @endif
+        @break
+                    
                 @default
                     ({{ $article->status }})
             @endswitch
@@ -81,6 +89,10 @@
         </svg>
         レビュー取り下げ
     </button>
+    @elseif($article->status === 'reviewed' && $article->review)
+        <a href="{{ route('articles.view-review', $article->review->id) }}" class="text-blue-500 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-full mr-2 transition duration-300">
+            レビュー確認
+        </a>
 @endif
         <a href="{{ route('articles.edit', $article->id) }}" class="text-blue-500 hover:text-blue-700 transition duration-300 text-sm mr-4">編集</a>
         <form action="{{ route('articles.destroy', $article->id) }}" method="POST" class="inline">

@@ -24,7 +24,7 @@ class Article extends Model
     return $this->hasMany(ArticleComment::class);
 }
    
-public function reviewArticle()
+public function review()
 {
     return $this->hasOne(ReviewArticle::class);
 }

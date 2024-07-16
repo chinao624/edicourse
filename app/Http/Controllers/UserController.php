@@ -68,7 +68,7 @@ public function store(Request $request)
 public function showMypage()
 {
     $user = Auth::user();
-    $articles = Article::where('user_id', $user->id)->get();
+    $articles = Article::where('user_id', $user->id)->with('review')->get();
 
     return view('auth.mypage', compact('user', 'articles'));
 }

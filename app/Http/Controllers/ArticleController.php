@@ -421,13 +421,13 @@ public function getUserArticlesWithStatus()
     {
         $user = Auth::user();
         $articles = Article::where('user_id', $user->id)
+                          ->with('review')
                            ->select('id', 'title', 'status', 'created_at')
                            ->orderBy('created_at', 'desc')
                            ->get();
     
         return view('auth.mypage', compact('user', 'articles'));
 
-        return view('auth.mypage', compact('user', 'articles'));
     }
 
     // 下書きに戻すメソッドを追加
@@ -441,54 +441,8 @@ public function getUserArticlesWithStatus()
     return response()->json(['success' => true, 'message' => '記事を下書きに戻しました']);
 }
 
-// レビュー作成ビュー表示メソッド
-public function review($id)
-{
-    $article = Article::findOrFail($id);
-    return view('reviewer.review', compact('article'));
-}
 
-// レビュワー描画画像下書き保存メソッド
-public function saveDraft(Request $request, $reviewId)
-{
-    Log::info('Saving draft attempt started for review ID: ' . $reviewId);
 
-    $reviewArticle = ReviewArticle::find($reviewId);
-
-    if (!$reviewArticle || !$reviewArticle->article) {
-        Log::warning('ReviewArticle or associated Article not found for review ID: ' . $reviewId);
-        return response()->json(['success' => false, 'message' => 'Review not found'], 404);
-    }
-
-    // 認証チェック
-    if ($reviewArticle->reviewer_id !== Auth::guard('reviewer')->id()) {
-        Log::warning('Unauthorized attempt to save draft for review ID: ' . $reviewId);
-        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-    }
-
-    $article = $reviewArticle->article;
-
-    // バリデーション
-    $validatedData = $request->validate([
-        'draft' => 'required|json',
-        'review_comment' => 'nullable|string',
-    ]);
-
-    try {
-        $article->draft = $validatedData['draft'];
-        $article->review_comment = $validatedData['review_comment'];
-
-        Log::info('New draft data:', ['data' => $article->draft, 'review_comment' => $article->review_comment]);
-
-        $article->save();
-        Log::info('Draft and review comment saved successfully');
-
-        return response()->json(['success' => true, 'message' => 'Draft saved successfully']);
-    } catch (\Exception $e) {
-        Log::error('Failed to save draft: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Failed to save draft'], 500);
-    }
-}
 
 // レビュー取り下げメソッド
 public function withdrawReviewRequest(Article $article)
@@ -508,11 +462,11 @@ public function withdrawReviewRequest(Article $article)
         $article->save();
 
         // ReviewArticleの状態を「取り下げ」に変更
-        $reviewArticle = $article->reviewArticle;
-        if ($reviewArticle) {
-            $reviewArticle->status = ReviewArticle::STATUS_WITHDRAWN;
-            $reviewArticle->withdrawn_at = now();
-            $reviewArticle->save();
+        $review = $article->review;
+        if ($review) {
+            $review->status = ReviewArticle::STATUS_WITHDRAWN;
+            $review->withdrawn_at = now();
+            $review->save();
 
             // ここでレビュワーへの通知を送信させたいが。。。
             // Notification::send($reviewArticle->reviewer, new ReviewWithdrawnNotification($article));
@@ -520,6 +474,31 @@ public function withdrawReviewRequest(Article $article)
     });
 
     return response()->json(['success' => true, 'message' => 'レビュー依頼を取り下げました。']);
+}
+
+// レビュー返却確認メソッド
+public function acknowledgeReview(ReviewArticle $review)
+{
+    if (auth()->id() !== $review->article->user_id) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    $review->update(['status' => ReviewArticle::STATUS_THANKED]);
+
+    return redirect()->back()->with('success', 'レビューへの感謝が記録されました。');
+}
+
+public function viewReview(ReviewArticle $review)
+{
+    if (auth()->id() !== $review->article->user_id) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    $article = $review->article;
+    $draftData = $review->draft_data;
+    $reviewComment = $review->feedback;
+
+    return view('reviewer.review', compact('review','article', 'draftData', 'reviewComment'));
 }
 }
 

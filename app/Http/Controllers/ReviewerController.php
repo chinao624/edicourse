@@ -9,6 +9,7 @@ use App\Models\Reviewer;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -82,18 +83,32 @@ public function acceptReview(Article $article)
 // レビューページ用メソッド
 public function showReviewPage(ReviewArticle $review)
 {
-    $article = $review->article;
-    $draftData = $article->draft;
-    $reviewComment = $article->review_comment; 
+    try {
+        $article = $review->article;
+        
+        if (!$article) {
+            Log::error('Article not found for review', ['review_id' => $review->id]);
+            abort(404, 'Article not found');
+        }
 
-    Log::info('Showing review page', [
-        'review_id' => $review->id,
-        'article_id' => $article->id,
-        'draft_data' => $draftData,
-        'review_comment' => $reviewComment
-    ]);
+        $draftData = $article->draft ?? null;
+        $reviewComment = $article->review_comment ?? '';
 
-    return view('reviewer.review', compact('review', 'article', 'draftData','reviewComment'));
+        Log::info('Showing review page', [
+            'review_id' => $review->id,
+            'article_id' => $article->id,
+            'has_draft_data' => !is_null($draftData),
+            'has_review_comment' => !empty($reviewComment)
+        ]);
+
+        return view('reviewer.review', compact('review', 'article', 'draftData', 'reviewComment'));
+    } catch (\Exception $e) {
+        Log::error('Error in showReviewPage', [
+            'review_id' => $review->id,
+            'error' => $e->getMessage()
+        ]);
+        abort(500, 'An error occurred while loading the review page');
+    }
 }
 
 public function delete(Request $request)
@@ -138,4 +153,66 @@ public function update(Request $request)
 
     return redirect()->route('reviewer.mypage.edit')->with('success', 'プロフィールが更新されました。');
 }
+
+public function saveDraft(Request $request, ReviewArticle $review)
+{
+    Log::info('Saving draft attempt started for review ID: ' . $review->id);
+
+    if ($review->reviewer_id !== Auth::guard('reviewer')->id()) {
+        Log::warning('Unauthorized attempt to save draft for review ID: ' . $review->id);
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $validatedData = $request->validate([
+        'draft' => 'required|json',
+        'review_comment' => 'nullable|string',
+    ]);
+
+    try {
+        $review->article->update([
+            'draft' => $validatedData['draft'],
+            'review_comment' => $validatedData['review_comment'],
+        ]);
+
+        Log::info('Draft and review comment saved successfully');
+
+        return response()->json(['success' => true, 'message' => 'Draft saved successfully']);
+    } catch (\Exception $e) {
+        Log::error('Failed to save draft: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to save draft'], 500);
+    }
 }
+
+public function submitReview(Request $request, ReviewArticle $review)
+{
+    if (Auth::guard('reviewer')->id() !== $review->reviewer_id) {
+        return response()->json(['success' => false, 'message' => 'この操作を行う権限がありません。'], 403);
+    }
+
+    $validatedData = $request->validate([
+        'feedback' => 'required|string',
+        'draft' => 'required|json',
+    ]);
+
+    try {
+        DB::transaction(function () use ($review, $validatedData) {
+            $review->update([
+                'status' => ReviewArticle::STATUS_COMPLETED,
+            ]);
+
+            $review->article->update([
+                'status' => 'reviewed',
+                'draft' => $validatedData['draft'],
+                'review_comment' => $validatedData['feedback'],
+            ]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'レビューが返却されました。']);
+    } catch (\Exception $e) {
+        Log::error('Failed to submit review: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'レビューの返却に失敗しました。'], 500);
+    }
+}
+}
+
+

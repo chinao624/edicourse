@@ -97,6 +97,10 @@ Route::middleware(['auth:web'])->group(function () {
 
     // レビュー依頼取り下げルート
     Route::post('/articles/{article}/withdraw-review', [ArticleController::class, 'withdrawReviewRequest'])->name('articles.withdraw-review');
+
+    // レビュー返却表示ルート
+    Route::post('/articles/acknowledgeReview/{review}', [ArticleController::class, 'acknowledgeReview'])->name('articles.acknowledgeReview');
+    Route::get('/articles/view-review/{review}', [ArticleController::class, 'viewReview'])->name('articles.view-review');
 });
 
 // Professor専用のルート
@@ -125,10 +129,17 @@ Route::middleware(['auth:reviewer'])->group(function () {
     Route::post('/reviewer/mypage/update', [ReviewerController::class, 'update'])->name('reviewer.mypage.update');
     Route::post('/reviewer/delete', [ReviewerController::class, 'delete'])->name('reviewer.delete');
     Route::post('/reviewer/accept-review/{article}', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept-review');
+    
+    // レビューページの表示
     Route::get('/reviewer/review/{review}', [ReviewerController::class, 'showReviewPage'])->name('reviewer.review');
+    
+    // レビューの提出
     Route::post('/reviewer/submit-review/{review}', [ReviewerController::class, 'submitReview'])->name('reviewer.submit-review');
-    Route::post('/reviewer/{review}/save-draft', [ArticleController::class, 'saveDraft'])->name('reviewer.save-draft');
+    
+    // 下書き保存
+    Route::post('/reviewer/{review}/save-draft', [ReviewerController::class, 'saveDraft'])->name('reviewer.save-draft');
 });
+
 
 // 記事表示ルート（認証不要）
 Route::post('/articles/preview', [ArticleController::class, 'preview'])->name('articles.preview');
