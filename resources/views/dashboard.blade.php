@@ -6,9 +6,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
-<link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
-    <title>Edicourse Media Dashboard</title>
+<link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image_x-icon">
+<title>Edicourse Media Dashboard</title>
     
+   
     <style>
         body {
             font-family: 'Poppins', sans-serif;
