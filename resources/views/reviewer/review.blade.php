@@ -102,17 +102,16 @@
         </button>
     </div>
     <div class="flex gap-2">
-        <button id="zoom-in" class="flex items-center font-bold py-2 px-4 rounded transition duration-300 ease-in-out border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-        </button>
-        <button id="zoom-out" class="flex items-center font-bold py-2 px-4 rounded transition duration-300 ease-in-out border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
-            </svg>
-        </button>
-    </div>
+    <button id="zoom-in" class="flex items-center font-bold py-2 px-4 rounded transition duration-300 ease-in-out border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+    </button>
+    <button id="zoom-out" class="flex items-center font-bold py-2 px-4 rounded transition duration-300 ease-in-out border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+        </svg>
+    </button>
 </div>
 @endif
 </main>
@@ -226,9 +225,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ズーム機能
-    document.getElementById('zoom-in').addEventListener('click', () => zoom(1.1));
-    document.getElementById('zoom-out').addEventListener('click', () => zoom(0.9));
-
+    const zoomInButton = document.getElementById('zoom-in');
+    const zoomOutButton = document.getElementById('zoom-out');
+    
+    if (zoomInButton && zoomOutButton) {
+        zoomInButton.addEventListener('click', () => zoom(1.1));
+        zoomOutButton.addEventListener('click', () => zoom(0.9));
+    }
     // レビュワー用の機能を追加
     if (window.isReviewer) {
         // 描画モードの切り替え

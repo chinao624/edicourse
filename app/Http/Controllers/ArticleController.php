@@ -480,12 +480,12 @@ public function withdrawReviewRequest(Article $article)
 public function acknowledgeReview(ReviewArticle $review)
 {
     if (auth()->id() !== $review->article->user_id) {
-        abort(403, 'Unauthorized action.');
+        return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
     }
 
     $review->update(['status' => ReviewArticle::STATUS_THANKED]);
 
-    return redirect()->back()->with('success', 'レビューへの感謝が記録されました。');
+    return response()->json(['success' => true, 'message' => 'レビューへの感謝が記録されました。']);
 }
 
 public function viewReview(ReviewArticle $review)

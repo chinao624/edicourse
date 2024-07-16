@@ -58,8 +58,15 @@ public function showMypage()
                               ->with('article')
                               ->distinct()
                               ->get();
+    // 完了したレビューと感謝の表示
+    $completedReviews = ReviewArticle::where('reviewer_id', $reviewer->id)
+                              ->whereIn('status', ['completed', 'thanked'])
+                              ->with('article')
+                              ->distinct()
+                              ->get();
 
-    return view('reviewer.mypage',compact('reviewer','reviewRequestedArticles','myReviews','ongoingReviews'));
+
+    return view('reviewer.mypage',compact('reviewer','reviewRequestedArticles','completedReviews','ongoingReviews'));
 }
 
 public function acceptReview(Article $article)

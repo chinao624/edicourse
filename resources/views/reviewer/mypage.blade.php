@@ -100,18 +100,23 @@
     <div class="mb-12">
         <h2 class="text-2xl font-light text-gray-700 mb-6 pb-2 border-b">
             <span class="block text-sm text-gray-500 mb-1">自分がレビューした記事</span>
-            My Review
+            My Reviews
         </h2>
-        @if($myReviews->isEmpty())
+        @if($completedReviews->isEmpty())
             <p class="text-gray-600 italic">まだレビューした記事はありません。</p>
         @else
             <ul class="space-y-4">
-                @foreach($myReviews as $review)
+                @foreach($completedReviews as $review)
                     <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
+                    <div>
                         <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
-                        
-                    </li>
-                @endforeach
+                        @if($review->status === 'thanked')
+                            <span class="ml-2 text-sm text-green-500 font-semibold">感謝されました</span>
+                        @endif
+                    </div>
+                    <span class="text-sm text-gray-500">{{ $review->updated_at->format('Y/m/d H:i') }}</span>
+                </li>
+            @endforeach
             </ul>
         @endif
     </div>

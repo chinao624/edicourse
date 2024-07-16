@@ -23,6 +23,7 @@ class ReviewArticle extends Model
         'limit_time',
         'withdrawn_at',
         'feedback',
+        
     ];
 
     protected $dates = [
