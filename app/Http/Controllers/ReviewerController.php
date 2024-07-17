@@ -75,7 +75,7 @@ public function acceptReview(Article $article)
     
     $article->update(['status' => 'under_review']);
 
-    ReviewArticle::updateOrCreate(
+    $review = ReviewArticle::updateOrCreate(
         ['article_id' => $article->id],
         [
             'reviewer_id' => $reviewer->id,
@@ -84,39 +84,50 @@ public function acceptReview(Article $article)
         ]
     );
 
-    return redirect()->route('reviewer.review', ['review' => $article->id])->with('success', 'レビューを受け付けました。');
+    return response()->json([
+        'success' => true,
+        'message' => 'レビューを受け付けました。',
+        'redirect' => route('reviewer.review', ['review' => $review->id])
+    ]);
 }
 
 // レビューページ用メソッド
 public function showReviewPage(ReviewArticle $review)
 {
-    try {
-        $article = $review->article;
-        
-        if (!$article) {
-            Log::error('Article not found for review', ['review_id' => $review->id]);
-            abort(404, 'Article not found');
+        try {
+            $article = $review->article;
+            
+            if (!$article) {
+                Log::error('Article not found for review', ['review_id' => $review->id]);
+                abort(404, 'Article not found');
+            }
+    
+            // レビューが現在のレビュワーに属しているか確認
+            if ($review->reviewer_id !== Auth::guard('reviewer')->id()) {
+                Log::warning('Unauthorized access attempt to review', ['review_id' => $review->id]);
+                abort(403, 'Unauthorized access');
+            }
+    
+            $draftData = $article->draft ?? null;
+            $reviewComment = $article->review_comment ?? '';
+    
+            Log::info('Showing review page', [
+                'review_id' => $review->id,
+                'article_id' => $article->id,
+                'has_draft_data' => !is_null($draftData),
+                'has_review_comment' => !empty($reviewComment)
+            ]);
+    
+            return view('reviewer.review', compact('review', 'article', 'draftData', 'reviewComment'));
+        } catch (\Exception $e) {
+            Log::error('Error in showReviewPage', [
+                'review_id' => $review->id,
+                'error' => $e->getMessage()
+            ]);
+            abort(500, 'An error occurred while loading the review page');
         }
-
-        $draftData = $article->draft ?? null;
-        $reviewComment = $article->review_comment ?? '';
-
-        Log::info('Showing review page', [
-            'review_id' => $review->id,
-            'article_id' => $article->id,
-            'has_draft_data' => !is_null($draftData),
-            'has_review_comment' => !empty($reviewComment)
-        ]);
-
-        return view('reviewer.review', compact('review', 'article', 'draftData', 'reviewComment'));
-    } catch (\Exception $e) {
-        Log::error('Error in showReviewPage', [
-            'review_id' => $review->id,
-            'error' => $e->getMessage()
-        ]);
-        abort(500, 'An error occurred while loading the review page');
     }
-}
+
 
 public function delete(Request $request)
 {
