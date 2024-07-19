@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function acceptReview(articleId) {
         console.log('Accepting review for article:', articleId);
         if (confirm('このレビューを受け付けますか？')) {
-            const url = `/reviewer/accept-review/${articleId}`;
+            const url = "{{ route('reviewer.accept-review', ':articleId') }}".replace(':articleId', articleId);
         console.log('Request URL:', url);
         fetch(url, {
             method: 'POST',
