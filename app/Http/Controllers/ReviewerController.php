@@ -71,10 +71,13 @@ public function showMypage()
 
 public function acceptReview(Article $article)
 {
+    Log::info('Accepting review for article: ' . $article->id);
     $reviewer = Auth::guard('reviewer')->user();
     
+    Log::info('Updating article status to under_review');
     $article->update(['status' => 'under_review']);
 
+    Log::info('Creating or updating ReviewArticle');
     $review = ReviewArticle::updateOrCreate(
         ['article_id' => $article->id],
         [
@@ -83,6 +86,8 @@ public function acceptReview(Article $article)
             'limit_time' => now()->addHours(24),
         ]
     );
+
+    Log::info('ReviewArticle created/updated: ' . $review->id);
 
     return response()->json([
         'success' => true,

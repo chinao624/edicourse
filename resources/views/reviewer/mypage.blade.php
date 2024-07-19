@@ -144,29 +144,36 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function acceptReview(articleId) {
+        console.log('Accepting review for article:', articleId);
         if (confirm('このレビューを受け付けますか？')) {
-            fetch(`/reviewer/accept-review/${articleId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('レビュー受付に失敗しました: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('レビュー受付中にエラーが発生しました。');
-            });
-        }
+            const url = `/reviewer/accept-review/${articleId}`;
+        console.log('Request URL:', url);
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('レビュー受付に失敗しました: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('レビュー受付中にエラーが発生しました。');
+        });
     }
+}
 
 
         function confirmDeleteAccount() {
