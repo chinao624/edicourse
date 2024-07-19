@@ -71,7 +71,7 @@ public function showMypage()
 
 public function acceptReview(Article $article)
 {
-    $reviewer = auth()->guard('reviewer')->user();
+    $reviewer = Auth::guard('reviewer')->user();
     
     $article->update(['status' => 'under_review']);
 
