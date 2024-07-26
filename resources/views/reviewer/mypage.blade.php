@@ -48,8 +48,8 @@
             @foreach($reviewRequestedArticles as $article)
                 <li class="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition duration-300">
                     <a href="{{ route('articles.show', $article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $article->title }}</a>
-                    <button data-article-id="{{ $article->id }}" class="accept-review-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                        私がレビューします！
+                    <button data-article-id="{{ $article->id }}" class="accept-review-btn bg-[#b0e0e6] hover:bg-[#87ceeb] text-gray-800 font-semibold py-2 px-4 rounded-md transition duration-300 shadow-sm">
+                     私がレビューします！
                     </button>
                 </li>
             @endforeach
@@ -73,21 +73,12 @@
             <a href="{{ route('articles.show', $review->article->id) }}" class="text-teal-600 hover:text-teal-800 transition duration-300">{{ $review->article->title }}</a>
             <p class="text-sm text-red-500">あと{{ remainingTime($review->limit_time) }}以内にレビューを返却してください</p>
         </div>
-        @if($review->article->draft)
-            <form action="{{ route('reviewer.review', $review->id) }}" method="GET">
-                @csrf
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                    下書きを続ける
-                </button>
-            </form>
-        @else
-            <form action="{{ route('reviewer.review', $review->id) }}" method="GET">
-                @csrf
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
-                    レビューを作成する
-                </button>
-            </form>
-        @endif
+        <form action="{{ route('reviewer.review', $review->id) }}" method="GET">
+    @csrf
+    <button type="submit" class="bg-[#ffe4e1] hover:bg-[#ffc0cb] text-gray-800 font-semibold py-2 px-4 rounded-md transition duration-300 shadow-sm">
+        {{ $review->article->draft ? '下書きを続ける' : 'レビューを作成する' }}
+    </button>
+</form>
     </li>
 @endforeach
         </ul>
