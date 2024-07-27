@@ -83,12 +83,14 @@
     @if($article->status == 'draft')
         <button data-article-id="{{ $article->id }}" class="review-request-btn bg-[#b0e0e6] hover:bg-[#87ceeb] text-blue-700 text-sm px-4 py-2 rounded-md mr-2">レビュー依頼</button>
         @elseif($article->status == 'review_requested')
-    <button data-article-id="{{ $article->id }}" class="withdraw-review-btn text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium py-1 px-3 rounded-md border border-amber-300 transition duration-300 ease-in-out flex items-center mr-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        レビュー取り下げ
-    </button>
+        <button data-article-id="{{ $article->id }}" 
+        data-url="{{ route('articles.withdraw-review', $article) }}"
+        class="withdraw-review-btn text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium py-1 px-3 rounded-md border border-amber-300 transition duration-300 ease-in-out flex items-center mr-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    レビュー取り下げ
+</button>
     @elseif($article->status === 'reviewed' && $article->review)
         <a href="{{ route('articles.view-review', $article->review->id) }}" class="text-blue-500 text-sm hover:text-blue-700 bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-md mr-2 transition duration-300">
             レビュー確認
@@ -145,11 +147,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.withdraw-review-btn').forEach(button => {
         button.addEventListener('click', function() {
-            const articleId = this.getAttribute('data-article-id');
-            if (articleId) {
-                withdrawReviewRequest(articleId, csrfToken);
+            const url = this.getAttribute('data-url');
+            if (url) {
+                withdrawReviewRequest(url, csrfToken);
             } else {
-                console.error('Article ID is missing for withdraw request');
+                console.error('Withdraw review URL is missing');
             }
         });
     });
@@ -161,9 +163,9 @@ function requestReview(articleId, csrfToken) {
     }
 }
 
-function withdrawReviewRequest(articleId, csrfToken) {
+function withdrawReviewRequest(url, csrfToken) {
     if (confirm('レビュー依頼を取り下げますか？この操作は取り消せません。')) {
-        sendRequest(`/articles/${articleId}/withdraw-review`, csrfToken, '取り下げ');
+        sendRequest(url, csrfToken, '取り下げ');
     }
 }
 
@@ -175,7 +177,15 @@ function sendRequest(url, csrfToken, action) {
             'X-CSRF-TOKEN': csrfToken
         },
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                console.error('Error response:', text);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             alert(data.message);
@@ -186,7 +196,7 @@ function sendRequest(url, csrfToken, action) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert(`${action}中にエラーが発生しました。`);
+        alert(`${action}中にエラーが発生しました: ` + error.message);
     });
 }
 </script>
