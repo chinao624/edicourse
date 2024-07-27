@@ -109,30 +109,62 @@
 </div>
 
   <!-- footer -->
-  <footer class="p-10 bg-neutral text-neutral-content">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <nav>
-        <h6 class="footer-title font-bold mb-2">Services</h6> 
-        <a class="link link-hover text-white">Branding</a>
-        <a class="link link-hover text-white">Design</a>
-        <a class="link link-hover text-white">Marketing</a>
-        <a class="link link-hover text-white">Advertisement</a>
-      </nav> 
-      <nav>
-        <h6 class="footer-title font-bold mb-2">Company</h6> 
-        <a class="link link-hover text-white">About us</a>
-        <a class="link link-hover text-white">Contact</a>
-        <a class="link link-hover text-white">Jobs</a>
-        <a class="link link-hover text-white">Press kit</a>
-      </nav> 
-      <nav>
-        <h6 class="footer-title font-bold mb-2">Legal</h6> 
-        <a class="link link-hover text-white">Terms of use</a>
-        <a class="link link-hover text-white">Privacy policy</a>
-        <a class="link link-hover text-white">Cookie policy</a>
-      </nav>
+  <footer class="bg-gradient-to-r from-[#ffb3ba] to-[#ffd1dc] text-gray-800 py-12">
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="space-y-4">
+        <h2 class="text-3xl font-josefin font-bold text-[#ff6347]">Edicourse</h2>
+        <p class="text-sm">発信がガクチカになる学生エディター養成MEDIA</p>
+        <div class="flex space-x-4">
+          <a href="#" class="text-gray-600 hover:text-[#ff6347] transition-colors duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+            </svg>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-[#ff6347] transition-colors duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01" />
+            </svg>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-[#ff6347] transition-colors duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <h3 class="text-xl font-semibold text-[#ff6347]">Quick Links</h3>
+        <ul class="space-y-2">
+          <li><a href="#" class="hover:text-[#ff6347] transition-colors duration-300">About Us</a></li>
+          <li><a href="#" class="hover:text-[#ff6347] transition-colors duration-300">Services</a></li>
+          <li><a href="#" class="hover:text-[#ff6347] transition-colors duration-300">Contact</a></li>
+          <li><a href="#" class="hover:text-[#ff6347] transition-colors duration-300">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="space-y-4">
+        <h3 class="text-xl font-semibold text-[#ff6347]">Newsletter</h3>
+        <p class="text-sm">最新情報を受け取りましょう</p>
+        <form class="flex">
+          <input
+            type="email"
+            placeholder="あなたのメールアドレス"
+            class="flex-grow px-4 py-2 rounded-l-full text-gray-800 focus:outline-none border-2 border-[#ffb3ba] focus:border-[#ff6347]"
+          />
+          <button
+            type="submit"
+            class="bg-[#ff6347] hover:bg-[#ff7f50] text-white px-6 py-2 rounded-r-full transition-colors duration-300"
+          >
+            登録
+          </button>
+        </form>
+      </div>
     </div>
-  </footer>
+    <div class="mt-8 pt-8 border-t border-gray-300 text-center">
+      <p class="text-gray-600">&copy; <span id="current-year"></span> Edicourse. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
@@ -142,6 +174,8 @@
         $('#header-image').css('transform', 'translateY(-' + scrollPosition * 0.5 + 'px)');
       });
     });
+
+    document.getElementById('current-year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
