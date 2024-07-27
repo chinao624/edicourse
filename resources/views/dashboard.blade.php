@@ -74,7 +74,7 @@
                 $latestArticle = $articles->where('status', 'published')->first();
             @endphp
             <section class="mb-12">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">新着記事</h2>
+                <h2 class="text-2xl font-normal text-gray-800 mb-4">新着記事</h2>
                 <div class="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
                     <div class="flex flex-col md:flex-row">
                         @if ($latestArticle->mainimg)
@@ -111,9 +111,15 @@
         @endif
 
         <section>
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">すべての記事</h2>
-            @if ($articles->where('status', 'published')->count() > 1)
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <h2 class="text-2xl font-normal text-gray-800 mb-6">
+        @if(isset($decodedGenre))
+            {{ $decodedGenre }}の記事
+        @else
+            すべての記事
+        @endif
+    </h2>
+    @if ($articles->where('status', 'published')->count() > 1)
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($articles->where('status', 'published')->skip(1) as $article)
                         <div class="article-card rounded-lg overflow-hidden">
                             @if ($article->mainimg)
@@ -146,14 +152,20 @@
                             </div>
                         </div>
                     @endforeach
-                </div>
-                <div class="mt-8">
-                    {{ $articles->links() }}
-                </div>
+                    </div>
+        <div class="mt-8">
+            {{ $articles->links() }}
+        </div>
+    @else
+        <p class="text-gray-600">
+            @if(isset($decodedGenre))
+                {{ $decodedGenre }}の記事はまだありません。
             @else
-                <p class="text-gray-600">追加の記事はありません。</p>
+                追加の記事はありません。
             @endif
-        </section>
+        </p>
+    @endif
+</section>
     </main>
 </body>
 </html>

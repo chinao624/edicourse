@@ -81,16 +81,16 @@
     </div>
     <div class="flex items-center">
     @if($article->status == 'draft')
-        <button data-article-id="{{ $article->id }}" class="review-request-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full mr-2">レビュー依頼</button>
+        <button data-article-id="{{ $article->id }}" class="review-request-btn bg-[#b0e0e6] hover:bg-[#87ceeb] text-blue-700 text-sm px-4 py-2 rounded-md mr-2">レビュー依頼</button>
         @elseif($article->status == 'review_requested')
-    <button data-article-id="{{ $article->id }}" class="withdraw-review-btn text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium py-1 px-3 rounded-full border border-amber-300 transition duration-300 ease-in-out flex items-center mr-4">
+    <button data-article-id="{{ $article->id }}" class="withdraw-review-btn text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium py-1 px-3 rounded-md border border-amber-300 transition duration-300 ease-in-out flex items-center mr-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
         レビュー取り下げ
     </button>
     @elseif($article->status === 'reviewed' && $article->review)
-        <a href="{{ route('articles.view-review', $article->review->id) }}" class="text-blue-500 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-full mr-2 transition duration-300">
+        <a href="{{ route('articles.view-review', $article->review->id) }}" class="text-blue-500 text-sm hover:text-blue-700 bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-md mr-2 transition duration-300">
             レビュー確認
         </a>
 @endif
