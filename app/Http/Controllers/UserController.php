@@ -86,25 +86,34 @@ public function edit()
 public function update(Request $request)
 {
     $user = Auth::user();
-    // dd($user);
+
     $validatedData = $request->validate([
         'nickname' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+        'email' => 'required|email|max:255|unique:users,email,'.$user->id,
+        'school' => 'required|in:Middle,High,College',
+        'school_name' => 'nullable|string|max:255',
+        'introduction' => 'nullable|string',
+        'password' => 'nullable|string|min:8|confirmed',
     ]);
 
-    //saveがうまくいかないのでupdateでやってみる
+    $user->nickname = $validatedData['nickname'];
+    $user->email = $validatedData['email'];
+    $user->school = $validatedData['school'];
+
     if($request->filled('password')){
-        $validatedData['password'] = Hash::make($request->password);
-    }else{
-        //パスワードが空の場合バリデートされたデータから削除
-        unset($validatedData['password']);
+        $user->password = Hash::make($request->password);
     }
 
-    $user->update($validatedData);
+    $user->save();
+
+    // プロフィール情報の更新
+    $user->profile->update([
+        'school_name' => $validatedData['school_name'],
+        'introduction' => $validatedData['introduction'],
+    ]);
 
     return redirect()->route('mypage')->with('success','プロフィールが更新されました');
-    }
+}
 
     public function deleteAccount()
     {
