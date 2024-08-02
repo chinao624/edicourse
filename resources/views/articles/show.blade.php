@@ -357,20 +357,25 @@ function saveChanges() {
         contentType: false,
         success: function(data) {
             if (data.success) {
-// ステータス表示の更新
-var statusDisplay = $('<p>').addClass('text-blue-600 font-semibold mt-4').text('下書き');
-$('.flex.justify-end.mt-4.space-x-4').html(statusDisplay);
+ // ステータスに応じて表示を変更
+ var statusDisplay = $('<p>').addClass('text-blue-600 font-semibold mt-4').text(data.status === 'draft' ? '下書き' : data.status);
+                $('.flex.justify-end.mt-4.space-x-4').html(statusDisplay);
 
-// ボタンの更新
-var publishForm = createPublishForm();
-var reviewRequestForm = createReviewRequestForm();
-$('.flex.justify-end.mt-4.space-x-4').append(publishForm).append(reviewRequestForm);
+                // ステータスに応じてボタンを更新
+                if (data.status === 'draft') {
+                    var publishForm = createPublishForm();
+                    var reviewRequestForm = createReviewRequestForm();
+                    $('.flex.justify-end.mt-4.space-x-4').append(publishForm).append(reviewRequestForm);
+                } else if (data.status === 'published') {
+                    var unpublishForm = createUnpublishForm();
+                    $('.flex.justify-end.mt-4.space-x-4').append(unpublishForm);
+                }
 
-// 編集モードを終了
-disableEditing();
+                // 編集モードを終了
+                disableEditing();
                 
-// 成功メッセージの表示
-                alert('記事を更新しました。記事は下書き状態になりました。');
+                // 成功メッセージの表示
+                alert(data.message);
             } else {
                 alert('更新に失敗しました: ' + (data.message || '不明なエラー'));
             }
