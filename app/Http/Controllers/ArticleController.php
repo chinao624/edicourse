@@ -85,9 +85,10 @@ class ArticleController extends Controller
      {
     return $this->genreMapping[$englishGenre] ?? $englishGenre;
      }
+     
     public function show(string $id)
     {
-        $article = Article::with(['user','comments.professor'])->findOrFail($id);
+        $article = Article::with(['user','comments.professor','review'])->findOrFail($id);
     $japaneseGenre = $this->getJapaneseGenre($article->genre);
 
     //日付の表示追加
@@ -271,18 +272,22 @@ class ArticleController extends Controller
 
      // 記事を公開する
      public function publish($id)
-     {
-         $article = Article::findOrFail($id);
- 
-         if(Auth::check() && Auth::user()->id == $article->user_id){
-             $article->status = 'published';
-             $article->save();
- 
-             return response()->json(['success' => true, 'message' => '記事を公開しました']);
-            } else {
-                return response()->json(['success' => false, 'message' => '記事を公開する権限がありません'], 403);
-            }
-     }
+{
+    $article = Article::findOrFail($id);
+
+    if(Auth::check() && Auth::user()->id == $article->user_id){
+        if ($article->status == 'draft' || $article->status == 'reviewed') {
+            $article->status = 'published';
+            $article->save();
+
+            return response()->json(['success' => true, 'message' => '記事を公開しました']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'この記事は公開できない状態です'], 400);
+        }
+    } else {
+        return response()->json(['success' => false, 'message' => '記事を公開する権限がありません'], 403);
+    }
+}
 
     //  再投稿のメソッド
     public function repost($id)

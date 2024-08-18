@@ -187,7 +187,22 @@
                     レビューを待たずに公開する
                 </button>
             </form>
+            @elseif($article->status == 'reviewed')
+            <p class="text-green-600 font-semibold mt-4 mr-4">レビュー完了</p>
+            <form id="publishForm" action="{{ route('articles.publish', $article->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <button type="submit" id="publishButton" class="btn bg-[#f08080] hover:bg-red-400 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    レビュー後の記事を公開する
+                </button>
+            </form>
         @elseif($article->status == 'published')
+        <p class="text-green-600 font-semibold mt-4 mr-4">公開中</p>
+            @if($article->review)
+                <a href="{{ route('articles.view-review', $article->review) }}" class="btn bg-[#4682b4] hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline">
+                    レビュー結果を確認
+                </a>
+            @endif
             <form id="unpublishForm" action="{{ route('articles.unpublish', $article->id) }}" method="POST">
                 @csrf
                 @method('PUT')
