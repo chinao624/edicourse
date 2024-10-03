@@ -15,44 +15,59 @@
         .article-card {
             background-color: white;
             border: 1px solid #e0e0e0;
-            transition: box-shadow 0.3s ease;
+            transition: all 0.3s ease;
         }
         .article-card:hover {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .genre-button {
+            background-color: #e9d8fd;
+            color: #6b46c1;
+            transition: all 0.3s ease;
+        }
+        .genre-button:hover {
+            background-color: #d6bcfa;
+            color: #553c9a;
+        }
+        .header-gradient {
+            background: linear-gradient(to right, #fff5f5, #fffacd);
         }
     </style>
 </head>
 <body class="min-h-screen">
     <header class="bg-white border-b border-gray-200 mt-4">
-        <div class="container mx-auto px-4 py-3">
-            <div class="flex justify-between items-center">
-                <a href="{{ route('dashboard') }}" class="text-4xl font-bold text-[#ff6347] font-josefin">Edicourse Media</a>
-                <nav>
-                    @if(Auth::guard('web')->check())
-                        <a href="{{ route('mypage') }}" class="text-blue-600 hover:text-blue-800 mr-4">マイページ</a>
-                        <form action="{{ route('logout') }}" method="POST" class="inline">
-                            @csrf
-                            <button class="text-gray-600 hover:text-gray-800" type="submit">ログアウト</button>
-                        </form>
-                    @elseif(Auth::guard('professor')->check())
-                        <a href="{{ route('professor.mypage') }}" class="text-blue-600 hover:text-blue-800 mr-4">オブザーバーマイページ</a>
-                        <form action="{{ route('professor.logout') }}" method="POST" class="inline">
-                            @csrf
-                            <button class="text-gray-600 hover:text-gray-800" type="submit">ログアウト</button>
-                        </form>
-                    @elseif(Auth::guard('reviewer')->check())
-                        <a href="{{ route('reviewer.mypage') }}" class="text-blue-600 hover:text-blue-800 mr-4">レビュワーマイページ</a>
-                        <form action="{{ route('reviewer.logout') }}" method="POST" class="inline">
-                            @csrf
-                            <button class="text-gray-600 hover:text-gray-800" type="submit">ログアウト</button>
-                        </form>
-                    @endif
-                </nav>
-            </div>
-            <div class="flex flex-wrap gap-2 mt-2 mb-2">
-                @foreach ($genres as $genreItem)
-                    <a href="{{ route('articles.genre', ['genre' => urlencode($genreItem)]) }}" class="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded-full hover:bg-gray-300 transition duration-300">{{ $genreItem }}</a>
-                @endforeach
+        <div class="header-gradient">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <a href="{{ route('dashboard') }}" class="text-4xl font-bold text-[#ff6347] font-josefin">Edicourse Media</a>
+                    <nav>
+                        @if(Auth::guard('web')->check())
+                            <a href="{{ route('mypage') }}" class="text-blue-600 hover:text-blue-800 mr-4">マイページ</a>
+                            <form action="{{ route('logout') }}" method="POST" class="inline">
+                                @csrf
+                                <button class="text-gray-600 hover:text-gray-800" type="submit">ログアウト</button>
+                            </form>
+                        @elseif(Auth::guard('professor')->check())
+                            <a href="{{ route('professor.mypage') }}" class="text-blue-600 hover:text-blue-800 mr-4">オブザーバーマイページ</a>
+                            <form action="{{ route('professor.logout') }}" method="POST" class="inline">
+                                @csrf
+                                <button class="text-gray-600 hover:text-gray-800" type="submit">ログアウト</button>
+                            </form>
+                        @elseif(Auth::guard('reviewer')->check())
+                            <a href="{{ route('reviewer.mypage') }}" class="text-blue-600 hover:text-blue-800 mr-4">レビュワーマイページ</a>
+                            <form action="{{ route('reviewer.logout') }}" method="POST" class="inline">
+                                @csrf
+                                <button class="text-gray-600 hover:text-gray-800" type="submit">ログアウト</button>
+                            </form>
+                        @endif
+                    </nav>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4 mb-2">
+                    @foreach ($genres as $genreItem)
+                        <a href="{{ route('articles.genre', ['genre' => urlencode($genreItem)]) }}" class="genre-button text-sm px-4 py-2 rounded-full transition duration-300">{{ $genreItem }}</a>
+                    @endforeach
+                </div>
             </div>
         </div>
     </header>
